@@ -5,11 +5,14 @@ import os
 # Get the backend directory path
 BACKEND_DIR = Path(__file__).parent.parent
 DATA_DIR = BACKEND_DIR / "data"
+MCP_TOOLS_DIR = BACKEND_DIR / "mcp_tools_server"
 WORKFLOWS_FILE = DATA_DIR / "workflows.json"
 TEMPLATES_FILE = DATA_DIR / "templates.json"
+TOOLS_FILE = MCP_TOOLS_DIR / "tools.json"
 
-# Ensure data directory exists
+# Ensure directories exist
 DATA_DIR.mkdir(exist_ok=True)
+MCP_TOOLS_DIR.mkdir(exist_ok=True)
 
 def initialize_json_file(file_path: Path, initial_data=None):
     """Initialize a JSON file with default data if it doesn't exist"""
@@ -23,6 +26,7 @@ def initialize_json_file(file_path: Path, initial_data=None):
 # Initialize files with empty arrays if they don't exist
 initialize_json_file(WORKFLOWS_FILE)
 initialize_json_file(TEMPLATES_FILE)
+initialize_json_file(TOOLS_FILE)
 
 def load_workflows():
     """Load workflows from the JSON file"""
@@ -57,3 +61,22 @@ def save_templates(templates):
     """Save templates to the JSON file"""
     with open(TEMPLATES_FILE, "w") as f:
         json.dump(templates, f, indent=2)
+
+def load_tools():
+    """Load MCP tools from the JSON file"""
+    initialize_json_file(TOOLS_FILE)
+    try:
+        with open(TOOLS_FILE, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Error loading tools: {e}")
+        return []
+
+def save_tools(tools):
+    """Save MCP tools to the JSON file"""
+    try:
+        with open(TOOLS_FILE, "w") as f:
+            json.dump(tools, f, indent=2)
+    except Exception as e:
+        print(f"Error saving tools: {e}")
+        raise

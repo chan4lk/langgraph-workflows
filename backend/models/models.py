@@ -20,6 +20,15 @@ class Tool(BaseModel):
     type: str
     config: Optional[Dict[str, Any]] = None
 
+class MCPTool(BaseModel):
+    id: str
+    name: str
+    description: str
+    type: str
+    config: Optional[Dict[str, Any]] = None
+    createdAt: str
+    updatedAt: str
+
 class NodeData(BaseModel):
     label: str
     description: Optional[str] = None
