@@ -1,7 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from backend.models.models import PromptTemplate
-from backend.utils.file_operations import load_templates, save_templates
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from models.models import PromptTemplate
+from utils.file_operations import load_templates, save_templates
 
 router = APIRouter(
     prefix="/api/templates",

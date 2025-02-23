@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import workflow_router, template_router, tool_router
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from routers import workflow_router, template_router, tool_router
 
 app = FastAPI(title="Workflow Management API")
 

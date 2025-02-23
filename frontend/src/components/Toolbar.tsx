@@ -2,114 +2,84 @@ import {
   Paper, 
   List, 
   ListItem, 
-  ListItemIcon, 
   ListItemButton,
+  ListItemIcon,
   Tooltip,
   Divider,
 } from '@mui/material';
 import {
   SmartToy,
-  Person,
   Functions,
+  Person,
   PlayArrow,
   Stop,
-  AccountTree
+  Build,
+  AccountTree,
+  CallSplit,
+  CallMerge,
+  SvgIconComponent,
 } from '@mui/icons-material';
 import { useWorkflowStore } from '../store/workflowStore';
-import { NodeType, WorkflowNode } from '../types/workflow';
+import { NodeType } from '../types/workflow';
 import { NodeFactory } from '../nodes/NodeFactory';
 
-interface Position {
-  x: number;
-  y: number;
-}
+const nodeIcons: Record<NodeType, SvgIconComponent> = {
+  [NodeType.AGENT]: SmartToy,
+  [NodeType.FUNCTION]: Functions,
+  [NodeType.HUMAN_TASK]: Person,
+  [NodeType.START]: PlayArrow,
+  [NodeType.END]: Stop,
+  [NodeType.TOOL]: Build,
+  [NodeType.SUB_WORKFLOW]: AccountTree,
+  [NodeType.FORK]: CallSplit,
+  [NodeType.JOIN]: CallMerge,
+};
 
-const getNextNodePosition = (nodes: WorkflowNode[]): Position => {
-  if (nodes.length === 0) {
-    return { x: 250, y: 100 };
-  }
-  const maxY = Math.max(...nodes.map(node => node.position.y));
+const getNextNodePosition = (nodes: any[]) => {
+  const maxY = nodes.reduce((max, node) => Math.max(max, node.position.y), 0);
   return { x: 250, y: maxY + 100 };
 };
 
 export const Toolbar = () => {
   const nodes = useWorkflowStore((state) => state.currentWorkflow?.nodes || []);
   const addNode = useWorkflowStore((state) => state.addNode);
+  const nodeFactory = NodeFactory.getInstance();
+  const availableNodeTypes = nodeFactory.getAvailableNodeTypes();
 
   const handleAddNode = (type: NodeType) => {
     const position = getNextNodePosition(nodes);
-    const node = NodeFactory.createNode(type, position);
+    const node = nodeFactory.createNode(type, position);
     addNode(node);
   };
 
   return (
     <Paper
-      elevation={3}
+      elevation={2}
       sx={{
         position: 'fixed',
-        left: 20,
-        top: 80,
-        width: 'auto',
+        left: 16,
+        top: 16,
         zIndex: 1000,
-        borderRadius: 2,
+        bgcolor: 'background.paper',
+        borderRadius: 1,
       }}
     >
       <List>
-        <ListItem disablePadding>
-          <Tooltip title="Add Agent" placement="right">
-            <ListItemButton onClick={() => handleAddNode('agent')}>
-              <ListItemIcon>
-                <SmartToy />
-              </ListItemIcon>
-            </ListItemButton>
-          </Tooltip>
-        </ListItem>
-        <ListItem disablePadding>
-          <Tooltip title="Add Human Task" placement="right">
-            <ListItemButton onClick={() => handleAddNode('human_task')}>
-              <ListItemIcon>
-                <Person />
-              </ListItemIcon>
-            </ListItemButton>
-          </Tooltip>
-        </ListItem>
-        <ListItem disablePadding>
-          <Tooltip title="Add Function" placement="right">
-            <ListItemButton onClick={() => handleAddNode('function')}>
-              <ListItemIcon>
-                <Functions />
-              </ListItemIcon>
-            </ListItemButton>
-          </Tooltip>
-        </ListItem>
-        <ListItem disablePadding>
-          <Tooltip title="Add Sub-workflow" placement="right">
-            <ListItemButton onClick={() => handleAddNode('sub_workflow')}>
-              <ListItemIcon>
-                <AccountTree />
-              </ListItemIcon>
-            </ListItemButton>
-          </Tooltip>
-        </ListItem>
+        {availableNodeTypes.map((type) => {
+          const Icon = nodeIcons[type];
+          return Icon ? (
+            <ListItem key={type} disablePadding>
+              <Tooltip title={type} placement="right">
+                <ListItemButton onClick={() => handleAddNode(type)}>
+                  <ListItemIcon>
+                    <Icon />
+                  </ListItemIcon>
+                </ListItemButton>
+              </Tooltip>
+            </ListItem>
+          ) : null;
+        })}
         <Divider />
-        <ListItem disablePadding>
-          <Tooltip title="Add Start" placement="right">
-            <ListItemButton onClick={() => handleAddNode('start')}>
-              <ListItemIcon>
-                <PlayArrow />
-              </ListItemIcon>
-            </ListItemButton>
-          </Tooltip>
-        </ListItem>
-        <ListItem disablePadding>
-          <Tooltip title="Add End" placement="right">
-            <ListItemButton onClick={() => handleAddNode('end')}>
-              <ListItemIcon>
-                <Stop />
-              </ListItemIcon>
-            </ListItemButton>
-          </Tooltip>
-        </ListItem>
       </List>
     </Paper>
   );

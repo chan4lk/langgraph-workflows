@@ -1,15 +1,6 @@
-import { NodeType, WorkflowNode, NodeData } from '../types/workflow';
 import { XYPosition } from 'reactflow';
-import { 
-  AgentNodeCreator,
-  HumanTaskNodeCreator,
-  SubWorkflowNodeCreator,
-  FunctionNodeCreator,
-  StartNodeCreator,
-  EndNodeCreator,
-  ForkNodeCreator,
-  JoinNodeCreator,
-} from './creators';
+import { NodeType, WorkflowNode, NodeData } from '../types/workflow';
+import { nodeCreators } from './creators';
 
 export interface NodeCreator {
   createNode(position: XYPosition): WorkflowNode;
@@ -19,18 +10,21 @@ export interface NodeCreator {
 }
 
 export class NodeFactory {
-  private static readonly creators: ReadonlyMap<NodeType, NodeCreator> = new Map<NodeType, NodeCreator>([
-    ['agent', new AgentNodeCreator()],
-    ['human_task', new HumanTaskNodeCreator()],
-    ['sub_workflow', new SubWorkflowNodeCreator()],
-    ['function', new FunctionNodeCreator()],
-    ['start', StartNodeCreator],
-    ['end', EndNodeCreator],
-    ['fork', ForkNodeCreator],
-    ['join', JoinNodeCreator],
-  ]);
+  private static instance: NodeFactory;
+  private creators: Map<NodeType, NodeCreator>;
 
-  static createNode(type: NodeType, position: XYPosition): WorkflowNode {
+  private constructor() {
+    this.creators = new Map(Object.entries(nodeCreators) as [NodeType, NodeCreator][]);
+  }
+
+  public static getInstance(): NodeFactory {
+    if (!NodeFactory.instance) {
+      NodeFactory.instance = new NodeFactory();
+    }
+    return NodeFactory.instance;
+  }
+
+  public createNode(type: NodeType, position: XYPosition): WorkflowNode {
     const creator = this.creators.get(type);
     if (!creator) {
       throw new Error(`No creator found for node type: ${type}`);
@@ -38,7 +32,7 @@ export class NodeFactory {
     return creator.createNode(position);
   }
 
-  static getDefaultData(type: NodeType): NodeData {
+  public getDefaultData(type: NodeType): NodeData {
     const creator = this.creators.get(type);
     if (!creator) {
       throw new Error(`No creator found for node type: ${type}`);
@@ -46,19 +40,23 @@ export class NodeFactory {
     return creator.getDefaultData();
   }
 
-  static validateData(type: NodeType, data: NodeData): boolean {
+  public validateData(type: NodeType, data: NodeData): boolean {
     const creator = this.creators.get(type);
-    if (!creator || !creator.validateData) {
-      return true;
+    if (!creator) {
+      throw new Error(`No creator found for node type: ${type}`);
     }
-    return creator.validateData(data);
+    return creator.validateData ? creator.validateData(data) : true;
   }
 
-  static updateData(type: NodeType, data: NodeData, updates: Partial<NodeData>): NodeData {
+  public updateData(type: NodeType, data: NodeData, updates: Partial<NodeData>): NodeData {
     const creator = this.creators.get(type);
-    if (!creator || !creator.updateData) {
-      return { ...data, ...updates };
+    if (!creator) {
+      throw new Error(`No creator found for node type: ${type}`);
     }
-    return creator.updateData(data, updates);
+    return creator.updateData ? creator.updateData(data, updates) : { ...data, ...updates };
+  }
+
+  public getAvailableNodeTypes(): NodeType[] {
+    return Array.from(this.creators.keys());
   }
 }

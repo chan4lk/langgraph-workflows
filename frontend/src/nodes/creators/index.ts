@@ -1,24 +1,35 @@
-export * from './AgentNodeCreator';
-export * from './HumanTaskNodeCreator';
-export * from './SubWorkflowNodeCreator';
-export * from './FunctionNodeCreator';
-
 import { BaseNodeCreator } from './BaseNodeCreator';
-import { NodeType } from '../../types/workflow';
+import { AgentNodeCreator } from './AgentNodeCreator';
+import { FunctionNodeCreator } from './FunctionNodeCreator';
+import { ToolNodeCreator } from './ToolNodeCreator';
+import { HumanTaskNodeCreator } from './HumanTaskNodeCreator';
+import { SubWorkflowNodeCreator } from './SubWorkflowNodeCreator';
+import { NodeType, NodeData } from '../../types/workflow';
 
 class SimpleNodeCreator extends BaseNodeCreator {
-  constructor(protected type: NodeType) {
+  protected type: NodeType;
+
+  constructor(type: NodeType) {
     super();
+    this.type = type;
   }
 
-  getDefaultData() {
+  getDefaultData(): NodeData {
     return {
-      label: this.type.charAt(0).toUpperCase() + this.type.slice(1).replace('_', ' '),
+      label: this.type.charAt(0).toUpperCase() + this.type.slice(1),
+      type: this.type,
     };
   }
 }
 
-export const StartNodeCreator = new SimpleNodeCreator('start');
-export const EndNodeCreator = new SimpleNodeCreator('end');
-export const ForkNodeCreator = new SimpleNodeCreator('fork');
-export const JoinNodeCreator = new SimpleNodeCreator('join');
+export const nodeCreators = {
+  [NodeType.START]: new SimpleNodeCreator(NodeType.START),
+  [NodeType.END]: new SimpleNodeCreator(NodeType.END),
+  [NodeType.AGENT]: new AgentNodeCreator(),
+  [NodeType.FUNCTION]: new FunctionNodeCreator(),
+  [NodeType.TOOL]: new ToolNodeCreator(),
+  [NodeType.HUMAN_TASK]: new HumanTaskNodeCreator(),
+  [NodeType.SUB_WORKFLOW]: new SubWorkflowNodeCreator(),
+  [NodeType.FORK]: new SimpleNodeCreator(NodeType.FORK),
+  [NodeType.JOIN]: new SimpleNodeCreator(NodeType.JOIN),
+};

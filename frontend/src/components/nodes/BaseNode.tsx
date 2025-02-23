@@ -36,6 +36,8 @@ export const BaseNode: React.FC<BaseNodeProps> = ({
         return '#00bcd4';
       case 'sub_workflow':
         return '#ff9800';
+      case 'tool':
+        return '#795548';
       default:
         return '#555';
     }

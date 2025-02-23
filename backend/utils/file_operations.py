@@ -64,12 +64,13 @@ def save_templates(templates):
 
 def load_tools():
     """Load MCP tools from the JSON file"""
-    initialize_json_file(TOOLS_FILE)
+    initialize_json_file(TOOLS_FILE)  # Ensure file exists and is properly initialized
     try:
         with open(TOOLS_FILE, "r") as f:
-            return json.load(f)
+            data = json.load(f)
+            return data if isinstance(data, list) else []
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Error loading tools: {e}")
+        print(f"Error loading tools: {e}")  # Debug print
         return []
 
 def save_tools(tools):
@@ -78,5 +79,5 @@ def save_tools(tools):
         with open(TOOLS_FILE, "w") as f:
             json.dump(tools, f, indent=2)
     except Exception as e:
-        print(f"Error saving tools: {e}")
+        print(f"Error saving tools: {e}")  # Debug print
         raise

@@ -1,20 +1,24 @@
-import { Node, Edge, EdgeMarker } from 'reactflow';
+import { Node, Edge } from 'reactflow';
+import { Tool as FullTool, ToolConfig } from './tool';
 
-export type NodeType = 
-  | 'start' 
-  | 'end' 
-  | 'agent' 
-  | 'function' 
-  | 'human_task' 
-  | 'sub_workflow'
-  | 'fork'
-  | 'join';
+// Keep in sync with backend NodeType enum
+export enum NodeType {
+  START = 'start',
+  END = 'end',
+  AGENT = 'agent',
+  FUNCTION = 'function',
+  HUMAN_TASK = 'human_task',
+  TOOL = 'tool',
+  SUB_WORKFLOW = 'sub_workflow',
+  FORK = 'fork',
+  JOIN = 'join'
+}
 
-export type EdgeType = 
+export type EdgeTypes = 
   | 'default'
-  | 'conditional'
-  | 'fork'
-  | 'join';
+  | 'smoothstep'
+  | 'step'
+  | 'straight';
 
 export interface PromptTemplate {
   id: string;
@@ -25,55 +29,35 @@ export interface PromptTemplate {
   updatedAt: string;
 }
 
-export interface ToolConfig {
-  // Common configuration properties
-  name?: string;
-  description?: string;
-  parameters?: {
-    name: string;
-    type: string;
-    description?: string;
-    required?: boolean;
-    default?: string | number | boolean;
-  }[];
-  // Add other specific configuration properties as needed
-}
-
-export interface Tool {
-  id: string;
-  name: string;
-  description: string;
-  type: 'function' | 'api' | 'custom';
-  config?: ToolConfig;
-}
+// Simplified Tool type for node data (without timestamps)
+export type NodeTool = Omit<FullTool, 'createdAt' | 'updatedAt'>;
 
 export interface NodeData {
   label: string;
   description?: string;
+  type: NodeType;
   // Agent specific fields
   agentName?: string;
   llmConfigId?: string;
   promptTemplateId?: string;
-  template?: PromptTemplate | null;
-  tools?: Tool[];
+  template?: PromptTemplate;
+  tools?: NodeTool[];
   // Function specific fields
   functionName?: string;
   // Human task specific fields
   taskName?: string;
-  assignmentRules?: {
-    users?: string[];
-    groups?: string[];
-  };
-  inputFields?: {
-    name: string;
-    type: string;
-    required: boolean;
-  }[];
+  assignmentRules?: Record<string, string[]>;
+  inputFields?: any[];
   // Sub-workflow specific fields
   workflowId?: string;
-  parameterMapping?: {
-    [key: string]: string;
-  };
+  parameterMapping?: Record<string, string>;
+  // Tool specific fields
+  toolId?: string;
+  toolConfig?: ToolConfig;
+  // Fork specific fields
+  branches?: string[];
+  // Join specific fields
+  joinType?: 'all' | 'any';
 }
 
 export interface EdgeData {
@@ -82,9 +66,14 @@ export interface EdgeData {
 
 export type WorkflowNode = Node<NodeData>;
 
-export type WorkflowEdge = Edge<EdgeData> & {
-  type: EdgeType;
-  markerEnd?: EdgeMarker;
+export type WorkflowEdge = {
+  id: string;
+  source: string;
+  target: string;
+  type: EdgeTypes;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
+  data?: EdgeData;
 };
 
 export interface Workflow {

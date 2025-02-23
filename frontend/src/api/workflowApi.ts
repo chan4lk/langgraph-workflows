@@ -1,26 +1,26 @@
-import { Workflow, PromptTemplate } from '../types/workflow';
+import { Workflow } from '../types/workflow';
+import { Tool } from '../types/tool';
+import { API_BASE_URL } from '../config';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const handleApiResponse = async <T>(response: Response): Promise<T> => {
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'API request failed');
+  }
+  const data = await response.json();
+  return data;
+};
 
-class WorkflowApi {
-  // Workflow methods
+export const workflowApi = {
   async listWorkflows(): Promise<Workflow[]> {
     const response = await fetch(`${API_BASE_URL}/workflows`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch workflows');
-    }
-    return response.json();
-  }
+    return handleApiResponse<Workflow[]>(response);
+  },
 
   async getWorkflow(id: string): Promise<Workflow> {
     const response = await fetch(`${API_BASE_URL}/workflows/${id}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch workflow');
-    }
-    const workflow = await response.json();
-    console.log('Loaded workflow:', JSON.stringify(workflow, null, 2));
-    return workflow;
-  }
+    return handleApiResponse<Workflow>(response);
+  },
 
   async createWorkflow(workflow: Workflow): Promise<Workflow> {
     const response = await fetch(`${API_BASE_URL}/workflows`, {
@@ -30,96 +30,38 @@ class WorkflowApi {
       },
       body: JSON.stringify(workflow),
     });
-    if (!response.ok) {
-      throw new Error('Failed to create workflow');
-    }
-    return response.json();
-  }
+    return handleApiResponse<Workflow>(response);
+  },
 
-  async updateWorkflow(id: string, workflow: Workflow): Promise<Workflow> {
-    const response = await fetch(`${API_BASE_URL}/workflows/${id}`, {
+  async updateWorkflow(workflow: Workflow): Promise<Workflow> {
+    console.log('Updating workflow:', JSON.stringify(workflow, null, 2));
+    const response = await fetch(`${API_BASE_URL}/workflows/${workflow.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(workflow),
     });
-    if (!response.ok) {
-      throw new Error('Failed to update workflow');
-    }
-    const savedWorkflow = await response.json();
-    return savedWorkflow;
-  }
+    return handleApiResponse<Workflow>(response);
+  },
 
   async deleteWorkflow(id: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/workflows/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
-      throw new Error('Failed to delete workflow');
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to delete workflow');
     }
-  }
+  },
 
-  // Template methods
-  async listTemplates(): Promise<PromptTemplate[]> {
-    const response = await fetch(`${API_BASE_URL}/templates`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch templates');
-    }
-    const text = await response.text();
-    // Fix malformed JSON array by adding [ at start if missing and removing trailing %
-    const cleanedText = text
-      .trim()
-      .replace(/^(?!\[)/, '[') // Add [ if not present at start
-      .replace(/\]%$/, ']'); // Replace ]% with ]
-    console.log('Cleaned template response:', cleanedText);
-    return JSON.parse(cleanedText);
-  }
+  async getTools(): Promise<Tool[]> {
+    const response = await fetch(`${API_BASE_URL}/tools`);
+    return handleApiResponse<Tool[]>(response);
+  },
 
-  async getTemplate(id: string): Promise<PromptTemplate> {
-    const response = await fetch(`${API_BASE_URL}/templates/${id}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch template');
-    }
-    return response.json();
-  }
-
-  async createTemplate(template: Omit<PromptTemplate, 'createdAt' | 'updatedAt'>): Promise<PromptTemplate> {
-    const response = await fetch(`${API_BASE_URL}/templates`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(template),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to create template');
-    }
-    return response.json();
-  }
-
-  async updateTemplate(id: string, template: Omit<PromptTemplate, 'createdAt' | 'updatedAt'>): Promise<PromptTemplate> {
-    const response = await fetch(`${API_BASE_URL}/templates/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(template),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to update template');
-    }
-    return response.json();
-  }
-
-  async deleteTemplate(id: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/templates/${id}`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) {
-      throw new Error('Failed to delete template');
-    }
-  }
-}
-
-export const workflowApi = new WorkflowApi();
+  async getTool(id: string): Promise<Tool> {
+    const response = await fetch(`${API_BASE_URL}/tools/${id}`);
+    return handleApiResponse<Tool>(response);
+  },
+};

@@ -11,7 +11,10 @@ export abstract class BaseNodeCreator implements NodeCreator {
       type: this.type,
       position,
       draggable: true,
-      data: this.getDefaultData(),
+      data: {
+        ...this.getDefaultData(),
+        type: this.type // Always include type in node data
+      },
     };
   }
 
@@ -23,6 +26,10 @@ export abstract class BaseNodeCreator implements NodeCreator {
   }
 
   updateData(data: NodeData, updates: Partial<NodeData>): NodeData {
-    return { ...data, ...updates };
+    return { 
+      ...data, 
+      ...updates,
+      type: this.type // Ensure type is preserved during updates
+    };
   }
 }

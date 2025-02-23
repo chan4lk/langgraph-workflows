@@ -21,12 +21,13 @@ import {
   Edit as EditIcon,
 } from '@mui/icons-material';
 import { PromptTemplate } from '../../types/workflow';
-import { workflowApi } from '../../api/workflowApi';
+import { templateApi } from '../../api/templateApi';
 
 interface TemplateManagerProps {
   open: boolean;
   onClose: () => void;
   onSelect?: (templateId: string) => void;
+  onTemplatesChange?: (templates: PromptTemplate[]) => void;
   selectedTemplateId?: string;
 }
 
@@ -34,6 +35,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
   open,
   onClose,
   onSelect,
+  onTemplatesChange,
   selectedTemplateId,
 }) => {
   const [templates, setTemplates] = useState<PromptTemplate[]>([]);
@@ -48,8 +50,9 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 
   const loadTemplates = async () => {
     try {
-      const loadedTemplates = await workflowApi.listTemplates();
+      const loadedTemplates = await templateApi.listTemplates();
       setTemplates(loadedTemplates);
+      onTemplatesChange?.(loadedTemplates);
     } catch (error) {
       console.error('Failed to load templates:', error);
     }
@@ -61,7 +64,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     try {
       if (editTemplate.id) {
         // Update existing template
-        await workflowApi.updateTemplate(editTemplate.id, {
+        await templateApi.updateTemplate(editTemplate.id, {
           ...editTemplate,
           createdAt: editTemplate.createdAt || new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -74,7 +77,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         } as PromptTemplate;
-        await workflowApi.createTemplate(newTemplate);
+        await templateApi.createTemplate(newTemplate);
       }
       await loadTemplates();
       setEditDialogOpen(false);
@@ -88,7 +91,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     if (!window.confirm('Are you sure you want to delete this template?')) return;
 
     try {
-      await workflowApi.deleteTemplate(templateId);
+      await templateApi.deleteTemplate(templateId);
       await loadTemplates();
     } catch (error) {
       console.error('Failed to delete template:', error);
