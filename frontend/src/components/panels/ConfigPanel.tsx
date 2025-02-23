@@ -18,6 +18,9 @@ export const ConfigPanel = () => {
   const [templates, setTemplates] = useState<PromptTemplate[]>([]);
   const [openTemplateManager, setOpenTemplateManager] = useState(false);
 
+  console.log('selectedNode:', selectedNode);
+  console.log('selectedEdge:', selectedEdge);
+
   useEffect(() => {
     const loadTemplates = async () => {
       try {

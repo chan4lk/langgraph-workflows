@@ -170,15 +170,23 @@ export const WorkflowDesigner: React.FC = () => {
   );
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
-    setStoreSelectedNode(node as WorkflowNode);
+    const workflowNode = node as WorkflowNode;
+    setStoreSelectedNode(workflowNode);
+    // Only open NodeConfiguration for specific node types that need it
+    if (workflowNode.data.type === NodeType.TOOL || workflowNode.data.type === NodeType.AGENT) {
+      setConfigOpen(true);
+    }
+  }, [setStoreSelectedNode, setSelectedEdge]);
+
+  const onPaneClick = useCallback(() => {
+    setStoreSelectedNode(null);
     setSelectedEdge(null);
-    setConfigOpen(true);
+    setConfigOpen(false);
   }, [setStoreSelectedNode, setSelectedEdge]);
 
   const handleConfigClose = useCallback(() => {
     setConfigOpen(false);
-    setStoreSelectedNode(null);
-  }, [setStoreSelectedNode]);
+  }, []);
 
   const handleConfigSave = useCallback((updates: Partial<NodeData>) => {
     if (!currentWorkflow || !storeSelectedNode) return;
@@ -194,8 +202,7 @@ export const WorkflowDesigner: React.FC = () => {
     });
 
     setConfigOpen(false);
-    setStoreSelectedNode(null);
-  }, [currentWorkflow, storeSelectedNode, setCurrentWorkflow, setStoreSelectedNode]);
+  }, [currentWorkflow, storeSelectedNode, setCurrentWorkflow]);
 
   const handleToolsUpdate = useCallback((nodeId: string, tools: NodeTool[]) => {
     if (!currentWorkflow || !storeSelectedNode) return;
@@ -236,6 +243,7 @@ export const WorkflowDesigner: React.FC = () => {
         onConnect={onConnect}
         onNodeClick={onNodeClick}
         onEdgeClick={onEdgeClick}
+        onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
         fitView
@@ -256,8 +264,21 @@ export const WorkflowDesigner: React.FC = () => {
         <MiniMap 
           nodeColor={(node) => getNodeColor(node.type as NodeType)}
         />
+        <Box
+          sx={{
+            position: 'absolute',
+            right: 10,
+            top: 10,
+            zIndex: 4,
+            backgroundColor: 'white',
+            borderRadius: 1,
+            boxShadow: 1,
+            width: 300,
+          }}
+        >
+          <ConfigPanel />
+        </Box>
       </ReactFlow>
-      <ConfigPanel />
       {storeSelectedNode && (
         <NodeConfiguration
           open={configOpen}
