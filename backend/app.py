@@ -45,14 +45,31 @@ class PromptTemplate(BaseModel):
     createdAt: str
     updatedAt: str
 
+class Tool(BaseModel):
+    id: str
+    name: str
+    description: str
+    type: str
+    config: Optional[Dict[str, Any]] = None
+
 class NodeData(BaseModel):
     label: str
     description: Optional[str] = None
+    # Agent specific fields
     agentName: Optional[str] = None
     llmConfigId: Optional[str] = None
+    promptTemplateId: Optional[str] = None
+    template: Optional[PromptTemplate] = None
+    tools: Optional[List[Tool]] = None
+    # Function specific fields
+    functionName: Optional[str] = None
+    # Human task specific fields
     taskName: Optional[str] = None
     assignmentRules: Optional[Dict[str, List[str]]] = None
+    inputFields: Optional[List[Dict[str, Any]]] = None
+    # Sub-workflow specific fields
     workflowId: Optional[str] = None
+    parameterMapping: Optional[Dict[str, str]] = None
 
 class Node(BaseModel):
     id: str
@@ -130,22 +147,28 @@ async def create_workflow(workflow: Workflow):
     save_workflows(workflows)
     return workflow_dict
 
-@app.put("/api/workflows/{workflow_id}", response_model=Workflow)
+@app.put("/api/workflows/{workflow_id}")
 async def update_workflow(workflow_id: str, workflow: Workflow):
     """Update an existing workflow or create if it doesn't exist"""
     workflows = load_workflows()
     
-    index = next((i for i, w in enumerate(workflows) if w["id"] == workflow_id), None)
-    workflow_dict = workflow.dict()
-    workflow_dict["updatedAt"] = datetime.utcnow().isoformat()
+    # Update timestamp
+    workflow.updatedAt = datetime.utcnow().isoformat()
     
-    if index is None:
-        # If workflow doesn't exist, create it
-        workflows.append(workflow_dict)
-    else:
-        # Update existing workflow
-        workflows[index] = workflow_dict
+    # Convert to dict for JSON serialization
+    workflow_dict = workflow.dict(exclude_none=True)
     
+    # Find and update the workflow
+    for i, existing in enumerate(workflows):
+        if existing["id"] == workflow_id:
+            # Preserve existing fields that might not be in the update
+            existing.update(workflow_dict)
+            workflows[i] = existing
+            save_workflows(workflows)
+            return existing
+    
+    # If not found, create new
+    workflows.append(workflow_dict)
     save_workflows(workflows)
     return workflow_dict
 

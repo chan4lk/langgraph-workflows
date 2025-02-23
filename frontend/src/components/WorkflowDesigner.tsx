@@ -200,6 +200,15 @@ export const WorkflowDesigner: React.FC = () => {
             ...baseData,
             agentName: node.data?.agentName || '',
             llmConfigId: node.data?.llmConfigId || '',
+            promptTemplateId: node.data?.promptTemplateId || '',
+            template: node.data?.template || null,
+            tools: node.data?.tools || [],
+            functionName: node.data?.functionName || '',
+            taskName: node.data?.taskName || '',
+            assignmentRules: node.data?.assignmentRules || { users: [], groups: [] },
+            inputFields: node.data?.inputFields || [],
+            workflowId: node.data?.workflowId || '',
+            parameterMapping: node.data?.parameterMapping || {}
           };
           break;
         case 'human_task':

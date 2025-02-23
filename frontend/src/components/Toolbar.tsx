@@ -4,7 +4,6 @@ import {
   List, 
   ListItem, 
   ListItemIcon, 
-  ListItemText,
   ListItemButton,
   Tooltip,
   Divider,
@@ -20,14 +19,23 @@ import {
   AccountTree
 } from '@mui/icons-material';
 import { useWorkflowStore } from '../store/workflowStore';
-import { NodeType } from '../types/workflow';
+import { NodeType, WorkflowNode } from '../types/workflow';
+import { 
+  getDefaultNodeData, 
+  getAgentNodeData, 
+  getHumanTaskNodeData, 
+  getSubWorkflowNodeData 
+} from '../utils/nodeDefaults';
 
-const getNextNodePosition = (nodes: any[]) => {
+interface Position {
+  x: number;
+  y: number;
+}
+
+const getNextNodePosition = (nodes: WorkflowNode[]): Position => {
   if (nodes.length === 0) {
     return { x: 250, y: 100 };
   }
-
-  // Find the lowest y-position
   const maxY = Math.max(...nodes.map(node => node.position.y));
   return { x: 250, y: maxY + 100 };
 };
@@ -43,51 +51,21 @@ export const Toolbar: React.FC = () => {
       type,
       position,
       draggable: true,
-      data: {
-        label: type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' '),
-        description: null,
-        agentName: null,
-        llmConfigId: null,
-        promptTemplateId: '',
-        template: null,
-        tools: [],
-        taskName: null,
-        assignmentRules: null,
-        workflowId: null,
-      },
+      data: getDefaultNodeData()
     };
 
     switch (type) {
       case 'agent':
-        nodeData.data = {
-          ...nodeData.data,
-          label: 'Agent',
-          agentName: 'New Agent',
-          description: 'A new agent node',
-          promptTemplateId: '',
-          template: null,
-          tools: [],
-          llmConfigId: 'gpt-4'
-        };
+        nodeData.data = getAgentNodeData();
         break;
       case 'human_task':
-        nodeData.data = {
-          ...nodeData.data,
-          taskName: 'New Task',
-          description: 'A new human task',
-          assignmentRules: {
-            users: [],
-            groups: [],
-          },
-        };
+        nodeData.data = getHumanTaskNodeData();
         break;
       case 'sub_workflow':
-        nodeData.data = {
-          ...nodeData.data,
-          workflowId: '',
-          description: 'A new sub-workflow',
-        };
+        nodeData.data = getSubWorkflowNodeData();
         break;
+      default:
+        nodeData.data.label = type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ');
     }
 
     addNode(nodeData);
@@ -99,7 +77,7 @@ export const Toolbar: React.FC = () => {
       sx={{
         position: 'fixed',
         left: 20,
-        top: 80, // Positioned below the workflow toolbar
+        top: 80,
         width: 'auto',
         zIndex: 1000,
         borderRadius: 2,

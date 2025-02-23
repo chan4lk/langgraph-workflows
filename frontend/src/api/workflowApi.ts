@@ -37,7 +37,6 @@ class WorkflowApi {
   }
 
   async updateWorkflow(id: string, workflow: Workflow): Promise<Workflow> {
-    console.log('Saving workflow:', JSON.stringify(workflow, null, 2));
     const response = await fetch(`${API_BASE_URL}/workflows/${id}`, {
       method: 'PUT',
       headers: {
@@ -49,7 +48,6 @@ class WorkflowApi {
       throw new Error('Failed to update workflow');
     }
     const savedWorkflow = await response.json();
-    console.log('Saved workflow response:', JSON.stringify(savedWorkflow, null, 2));
     return savedWorkflow;
   }
 
