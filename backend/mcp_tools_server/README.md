@@ -104,7 +104,7 @@ experience, we strongly recommend using the [MCP Inspector](https://github.com/m
 You can launch the MCP Inspector via [`npm`](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) with this command:
 
 ```bash
-npx @modelcontextprotocol/inspector uv --directory /Users/chandima/repos/langgraph-workflows/mcp_tools_server run mcp-tools-server
+npx @modelcontextprotocol/inspector uv --directory /Users/chandima/repos/langgraph-workflows/backend/mcp_tools_server run mcp-tools-server
 ```
 
 
