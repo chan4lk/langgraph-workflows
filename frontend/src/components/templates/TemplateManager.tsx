@@ -7,8 +7,8 @@ import {
   Button,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
-  ListItemSecondaryAction,
   IconButton,
   TextField,
   Stack,
@@ -179,44 +179,57 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
           <List>
             {templates.map((template) => (
               <ListItem
+                disablePadding
                 key={template.id}
-                onClick={() => onSelect?.(template.id)}
-                selected={template.id === selectedTemplateId}
-                sx={{
-                  '&.Mui-selected': {
-                    backgroundColor: 'primary.light',
-                    '&:hover': {
-                      backgroundColor: 'primary.light',
-                    },
-                  },
-                  cursor: onSelect ? 'pointer' : 'default',
-                }}
+                secondaryAction={
+                  <IconButton
+                    edge="end"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteTemplate(template.id);
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                }
               >
-                <ListItemText
-                  primary={
-                    <Typography
-                      variant="body1"
-                      color={template.id === selectedTemplateId ? 'primary' : 'text.primary'}
-                    >
-                      {template.name}
-                    </Typography>
-                  }
-                  secondary={
-                    <Typography
-                      variant="body2"
-                      color={template.id === selectedTemplateId ? 'primary.dark' : 'text.secondary'}
-                      sx={{ 
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {template.description || template.content.substring(0, 100)}
-                    </Typography>
-                  }
-                />
-                <ListItemSecondaryAction>
+                <ListItemButton
+                  onClick={() => onSelect?.(template.id)}
+                  selected={template.id === selectedTemplateId}
+                  sx={{
+                    '&.Mui-selected': {
+                      backgroundColor: 'primary.light',
+                      '&:hover': {
+                        backgroundColor: 'primary.light',
+                      },
+                    },
+                    cursor: onSelect ? 'pointer' : 'default',
+                  }}
+                >
+                  <ListItemText
+                    primary={
+                      <Typography
+                        variant="body1"
+                        color={template.id === selectedTemplateId ? 'primary' : 'text.primary'}
+                      >
+                        {template.name}
+                      </Typography>
+                    }
+                    secondary={
+                      <Typography
+                        variant="body2"
+                        color={template.id === selectedTemplateId ? 'primary.dark' : 'text.secondary'}
+                        sx={{ 
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {template.description || template.content.substring(0, 100)}
+                      </Typography>
+                    }
+                  />
                   <IconButton
                     edge="end"
                     onClick={(e) => {
@@ -227,16 +240,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                   >
                     <EditIcon />
                   </IconButton>
-                  <IconButton
-                    edge="end"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteTemplate(template.id);
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </ListItemSecondaryAction>
+                </ListItemButton>
               </ListItem>
             ))}
             {templates.length === 0 && (
