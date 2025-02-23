@@ -25,6 +25,11 @@ WORKFLOWS_FILE = DATA_DIR / "workflows.json"
 # Ensure data directory exists
 DATA_DIR.mkdir(exist_ok=True)
 
+# Ensure workflows.json exists with empty array if it doesn't exist
+if not WORKFLOWS_FILE.exists():
+    with open(WORKFLOWS_FILE, "w") as f:
+        json.dump([], f)
+
 # Models
 class Position(BaseModel):
     x: float
@@ -65,10 +70,11 @@ class Workflow(BaseModel):
 
 # Helper functions
 def load_workflows():
-    if not WORKFLOWS_FILE.exists():
+    try:
+        with open(WORKFLOWS_FILE, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
         return []
-    with open(WORKFLOWS_FILE, "r") as f:
-        return json.load(f)
 
 def save_workflows(workflows):
     with open(WORKFLOWS_FILE, "w") as f:
@@ -105,16 +111,20 @@ async def create_workflow(workflow: Workflow):
 
 @app.put("/api/workflows/{workflow_id}", response_model=Workflow)
 async def update_workflow(workflow_id: str, workflow: Workflow):
-    """Update an existing workflow"""
+    """Update an existing workflow or create if it doesn't exist"""
     workflows = load_workflows()
     
     index = next((i for i, w in enumerate(workflows) if w["id"] == workflow_id), None)
-    if index is None:
-        raise HTTPException(status_code=404, detail="Workflow not found")
-    
     workflow_dict = workflow.dict()
     workflow_dict["updatedAt"] = datetime.utcnow().isoformat()
-    workflows[index] = workflow_dict
+    
+    if index is None:
+        # If workflow doesn't exist, create it
+        workflows.append(workflow_dict)
+    else:
+        # Update existing workflow
+        workflows[index] = workflow_dict
+    
     save_workflows(workflows)
     return workflow_dict
 

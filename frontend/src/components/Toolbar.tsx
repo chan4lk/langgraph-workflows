@@ -7,7 +7,9 @@ import {
   ListItemText,
   ListItemButton,
   Tooltip,
-  Divider
+  Divider,
+  Box,
+  Typography
 } from '@mui/material';
 import {
   PlayArrow,
@@ -83,11 +85,19 @@ export const Toolbar: React.FC = () => {
       sx={{
         position: 'fixed',
         left: 20,
-        top: 20,
+        top: 80, // Positioned below the workflow toolbar
         width: 'auto',
         zIndex: 1000,
+        borderRadius: 2,
+        bgcolor: 'background.paper',
       }}
     >
+      <Box sx={{ p: 1 }}>
+        <Typography variant="subtitle2" sx={{ px: 1, color: 'text.secondary' }}>
+          Add Nodes
+        </Typography>
+      </Box>
+      <Divider />
       <List>
         <ListItem disablePadding>
           <Tooltip title="Start Node" placement="right">
@@ -100,10 +110,22 @@ export const Toolbar: React.FC = () => {
         </ListItem>
 
         <ListItem disablePadding>
+          <Tooltip title="End Node" placement="right">
+            <ListItemButton onClick={() => handleAddNode('end')}>
+              <ListItemIcon>
+                <Stop color="error" />
+              </ListItemIcon>
+            </ListItemButton>
+          </Tooltip>
+        </ListItem>
+
+        <Divider />
+
+        <ListItem disablePadding>
           <Tooltip title="Agent Node" placement="right">
             <ListItemButton onClick={() => handleAddNode('agent')}>
               <ListItemIcon>
-                <SmartToy color="primary" />
+                <SmartToy />
               </ListItemIcon>
             </ListItemButton>
           </Tooltip>
@@ -113,39 +135,27 @@ export const Toolbar: React.FC = () => {
           <Tooltip title="Function Node" placement="right">
             <ListItemButton onClick={() => handleAddNode('function')}>
               <ListItemIcon>
-                <Functions color="secondary" />
+                <Functions />
               </ListItemIcon>
             </ListItemButton>
           </Tooltip>
         </ListItem>
 
         <ListItem disablePadding>
-          <Tooltip title="Human Task" placement="right">
+          <Tooltip title="Human Task Node" placement="right">
             <ListItemButton onClick={() => handleAddNode('human_task')}>
               <ListItemIcon>
-                <Person color="info" />
+                <Person />
               </ListItemIcon>
             </ListItemButton>
           </Tooltip>
         </ListItem>
 
         <ListItem disablePadding>
-          <Tooltip title="Sub-workflow" placement="right">
+          <Tooltip title="Sub-workflow Node" placement="right">
             <ListItemButton onClick={() => handleAddNode('sub_workflow')}>
               <ListItemIcon>
-                <AccountTree color="warning" />
-              </ListItemIcon>
-            </ListItemButton>
-          </Tooltip>
-        </ListItem>
-
-        <Divider />
-
-        <ListItem disablePadding>
-          <Tooltip title="End Node" placement="right">
-            <ListItemButton onClick={() => handleAddNode('end')}>
-              <ListItemIcon>
-                <Stop color="error" />
+                <AccountTree />
               </ListItemIcon>
             </ListItemButton>
           </Tooltip>

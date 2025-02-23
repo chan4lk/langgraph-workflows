@@ -1,7 +1,8 @@
 import React from 'react';
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { CssBaseline, ThemeProvider, createTheme, Box } from '@mui/material';
 import { ReactFlowProvider } from 'reactflow';
 import { WorkflowDesigner } from './components/WorkflowDesigner';
+import { WorkflowToolbar } from './components/toolbar/WorkflowToolbar';
 
 const theme = createTheme({
   palette: {
@@ -26,9 +27,14 @@ export const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <ReactFlowProvider>
-        <WorkflowDesigner />
-      </ReactFlowProvider>
+      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <WorkflowToolbar />
+        <Box sx={{ flexGrow: 1, position: 'relative' }}>
+          <ReactFlowProvider>
+            <WorkflowDesigner />
+          </ReactFlowProvider>
+        </Box>
+      </Box>
     </ThemeProvider>
   );
 };
