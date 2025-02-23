@@ -17,8 +17,7 @@ import { Box } from '@mui/material';
 import { useWorkflowStore } from '../store/workflowStore';
 import { ConfigPanel } from './panels/ConfigPanel';
 import { Toolbar } from './Toolbar';
-import { NodeConfiguration } from './NodeConfiguration';
-import { Workflow, WorkflowNode, WorkflowEdge, NodeType, EdgeTypes, NodeData, NodeTool } from '../types/workflow';
+import { Workflow, WorkflowNode, WorkflowEdge, NodeType, EdgeTypes, NodeData } from '../types/workflow';
 import { Tool } from '../types/tool';
 import { nodeTypes } from '../utils/nodeTypes';
 import { defaultEdgeOptions } from '../utils/edgeOptions';
@@ -92,22 +91,6 @@ export const WorkflowDesigner: React.FC = () => {
     setSelectedNode: setStoreSelectedNode,
     setSelectedEdge 
   } = useWorkflowStore();
-  const [configOpen, setConfigOpen] = useState(false);
-  const [tools, setTools] = useState<Tool[]>([]);
-
-  useEffect(() => {
-    // Load tools on component mount
-    const fetchTools = async () => {
-      try {
-        const toolsData = await workflowApi.getTools();
-        setTools(toolsData);
-      } catch (error) {
-        console.error('Failed to load tools:', error);
-      }
-    };
-
-    fetchTools();
-  }, []);
 
   useEffect(() => {
     if (!currentWorkflow) {
@@ -152,7 +135,6 @@ export const WorkflowDesigner: React.FC = () => {
         data: {}
       };
 
-      // Only add handles if they are present
       if (connection.sourceHandle) {
         newEdge.sourceHandle = connection.sourceHandle;
       }
@@ -172,51 +154,12 @@ export const WorkflowDesigner: React.FC = () => {
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     const workflowNode = node as WorkflowNode;
     setStoreSelectedNode(workflowNode);
-    // Only open NodeConfiguration for specific node types that need it
-    if (workflowNode.data.type === NodeType.TOOL || workflowNode.data.type === NodeType.AGENT) {
-      setConfigOpen(true);
-    }
-  }, [setStoreSelectedNode, setSelectedEdge]);
+  }, [setStoreSelectedNode]);
 
   const onPaneClick = useCallback(() => {
     setStoreSelectedNode(null);
     setSelectedEdge(null);
-    setConfigOpen(false);
   }, [setStoreSelectedNode, setSelectedEdge]);
-
-  const handleConfigClose = useCallback(() => {
-    setConfigOpen(false);
-  }, []);
-
-  const handleConfigSave = useCallback((updates: Partial<NodeData>) => {
-    if (!currentWorkflow || !storeSelectedNode) return;
-
-    setCurrentWorkflow({
-      ...currentWorkflow,
-      nodes: currentWorkflow.nodes.map((node) =>
-        node.id === storeSelectedNode.id
-          ? { ...node, data: { ...node.data, ...updates } }
-          : node
-      ),
-      updatedAt: new Date().toISOString(),
-    });
-
-    setConfigOpen(false);
-  }, [currentWorkflow, storeSelectedNode, setCurrentWorkflow]);
-
-  const handleToolsUpdate = useCallback((nodeId: string, tools: NodeTool[]) => {
-    if (!currentWorkflow || !storeSelectedNode) return;
-
-    setCurrentWorkflow({
-      ...currentWorkflow,
-      nodes: currentWorkflow.nodes.map((node) =>
-        node.id === nodeId
-          ? { ...node, data: { ...node.data, tools } }
-          : node
-      ),
-      updatedAt: new Date().toISOString(),
-    });
-  }, [currentWorkflow, storeSelectedNode, setCurrentWorkflow]);
 
   const onEdgeClick = useCallback((_: React.MouseEvent, edge: Edge) => {
     setStoreSelectedNode(null);
@@ -279,16 +222,6 @@ export const WorkflowDesigner: React.FC = () => {
           <ConfigPanel />
         </Box>
       </ReactFlow>
-      {storeSelectedNode && (
-        <NodeConfiguration
-          open={configOpen}
-          node={storeSelectedNode.data}
-          onClose={handleConfigClose}
-          onSave={handleConfigSave}
-          onToolsUpdate={handleToolsUpdate}
-          tools={tools}
-        />
-      )}
     </Box>
   );
 };

@@ -3,7 +3,7 @@ from typing import List
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.models import MCPTool, ToolType, APIToolConfig, CodeBlockConfig
+from models.models import MCPTool, ToolType, APIToolConfig, CodeBlockConfig, APIParameter
 from utils.file_operations import load_tools, save_tools
 from datetime import datetime
 
@@ -16,8 +16,21 @@ router = APIRouter(
 async def list_tools():
     """List all MCP tools"""
     tools = load_tools()
-    # Convert dict to MCPTool model if needed
-    return [MCPTool(**tool) if isinstance(tool, dict) else tool for tool in tools]
+    
+    # Convert dict to MCPTool model with parameter validation
+    mcp_tools = []
+    for tool in tools:
+        if isinstance(tool, dict):
+            # Convert request_body_schema to parameters if present
+            config = tool.get("config", {})
+            api_config = config.get("api_config", {})
+            if schema := api_config.get("request_body_schema"):
+                api_config["parameters"] = APIParameter.from_json_schema(schema)
+            mcp_tools.append(MCPTool(**tool))
+        else:
+            mcp_tools.append(tool)
+    
+    return mcp_tools
 
 @router.get("/{tool_id}", response_model=MCPTool)
 async def get_tool(tool_id: str):

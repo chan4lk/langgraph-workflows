@@ -8,7 +8,29 @@
         "properties": {
           "title": {
             "type": "string",
-            "description": "Title of the note updated 1"
+            "description": "Title of the note"
+          },
+          "content": {
+            "type": "string",
+            "description": "Content of the note"
+          }
+        },
+        "required": ["title", "content"]
+      }
+    },
+    {
+      "name": "update-note",
+      "description": "update note to the system",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the note"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the note"
           },
           "content": {
             "type": "string",

@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import os
+from datetime import datetime
 
 # Get the backend directory path
 BACKEND_DIR = Path(__file__).parent.parent
@@ -26,7 +27,7 @@ def initialize_json_file(file_path: Path, initial_data=None):
 # Initialize files with empty arrays if they don't exist
 initialize_json_file(WORKFLOWS_FILE)
 initialize_json_file(TEMPLATES_FILE)
-initialize_json_file(TOOLS_FILE)
+initialize_json_file(TOOLS_FILE, {"tools": []})
 
 def load_workflows():
     """Load workflows from the JSON file"""
@@ -64,20 +65,44 @@ def save_templates(templates):
 
 def load_tools():
     """Load MCP tools from the JSON file"""
-    initialize_json_file(TOOLS_FILE)  # Ensure file exists and is properly initialized
+    initialize_json_file(TOOLS_FILE, {"tools": []})  # Initialize with proper structure
     try:
         with open(TOOLS_FILE, "r") as f:
             data = json.load(f)
-            return data if isinstance(data, list) else []
+            tools_data = data.get("tools", [])
+            
+            # Convert tools to proper format with required fields
+            formatted_tools = []
+            for tool in tools_data:
+                formatted_tool = {
+                    "id": tool.get("name", "").lower().replace(" ", "-"),  # Generate ID from name
+                    "name": tool.get("name", ""),
+                    "description": tool.get("description", ""),
+                    "type": "api",  # Default to API type
+                    "config": {
+                        "type": "api",
+                        "api_config": {
+                            "method": "POST",
+                            "url": "",
+                            "parameters": [],
+                            "request_body_schema": tool.get("parameters", {})
+                        }
+                    },
+                    "createdAt": tool.get("createdAt", datetime.now().isoformat()),
+                    "updatedAt": tool.get("updatedAt", datetime.now().isoformat())
+                }
+                formatted_tools.append(formatted_tool)
+            
+            return formatted_tools
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Error loading tools: {e}")  # Debug print
+        print(f"Error loading tools: {e}")
         return []
 
 def save_tools(tools):
     """Save MCP tools to the JSON file"""
     try:
         with open(TOOLS_FILE, "w") as f:
-            json.dump(tools, f, indent=2)
+            json.dump({"tools": tools}, f, indent=2)
     except Exception as e:
         print(f"Error saving tools: {e}")  # Debug print
         raise

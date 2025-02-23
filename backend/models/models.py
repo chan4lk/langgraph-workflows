@@ -25,6 +25,24 @@ class APIParameter(BaseModel):
     required: bool = True
     default: Optional[Any] = None
 
+    @classmethod
+    def from_json_schema(cls, schema: Dict[str, Any]) -> List['APIParameter']:
+        """Convert JSON schema properties to APIParameter list"""
+        parameters = []
+        if schema and isinstance(schema, dict):
+            properties = schema.get("properties", {})
+            required = schema.get("required", [])
+            
+            for name, prop in properties.items():
+                parameters.append(cls(
+                    name=name,
+                    type=prop.get("type", "string"),
+                    description=prop.get("description", ""),
+                    required=name in required,
+                    default=prop.get("default")
+                ))
+        return parameters
+
 class APIToolConfig(BaseModel):
     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
     url: str
