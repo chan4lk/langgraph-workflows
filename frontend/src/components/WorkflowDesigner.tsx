@@ -11,9 +11,9 @@ import ReactFlow, {
   applyNodeChanges,
   applyEdgeChanges,
   BackgroundVariant,
-  addEdge,
   MarkerType,
   useReactFlow,
+  EdgeMarker,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Box } from '@mui/material';
@@ -24,7 +24,7 @@ import { BaseNode } from './nodes/BaseNode';
 import { AgentNode } from './nodes/AgentNode';
 import { HumanTaskNode } from './nodes/HumanTaskNode';
 import { SubWorkflowNode } from './nodes/SubWorkflowNode';
-import { WorkflowNode, WorkflowEdge, NodeType, EdgeType } from '../types/workflow';
+import { Workflow, WorkflowNode, WorkflowEdge, NodeType, EdgeType } from '../types/workflow';
 
 const nodeTypes = {
   base: BaseNode,
@@ -42,14 +42,14 @@ const defaultEdgeOptions = {
     type: MarkerType.ArrowClosed,
     width: 20,
     height: 20,
-  },
+  } as EdgeMarker,
   style: {
     strokeWidth: 2,
   },
 };
 
 // Sample initial workflow for testing
-const initialWorkflow = {
+const initialWorkflow: Workflow = {
   id: 'test-workflow',
   name: 'Test Workflow',
   description: 'A test workflow',
@@ -57,14 +57,14 @@ const initialWorkflow = {
   nodes: [
     {
       id: 'start',
-      type: 'start',
+      type: 'start' as NodeType,
       position: { x: 250, y: 50 },
       data: { label: 'Start' },
       draggable: true,
     },
     {
       id: 'agent1',
-      type: 'agent',
+      type: 'agent' as NodeType,
       position: { x: 250, y: 150 },
       data: { 
         label: 'Agent Node',
@@ -76,26 +76,26 @@ const initialWorkflow = {
     },
     {
       id: 'end',
-      type: 'end',
+      type: 'end' as NodeType,
       position: { x: 250, y: 250 },
       data: { label: 'End' },
       draggable: true,
     },
-  ],
+  ] as WorkflowNode[],
   edges: [
     {
       id: 'e1-2',
       source: 'start',
       target: 'agent1',
-      type: 'default',
+      type: 'default' as EdgeType,
     },
     {
       id: 'e2-3',
       source: 'agent1',
       target: 'end',
-      type: 'default',
+      type: 'default' as EdgeType,
     },
-  ],
+  ] as WorkflowEdge[],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };
@@ -123,10 +123,17 @@ export const WorkflowDesigner: React.FC = () => {
     (changes: NodeChange[]) => {
       if (!currentWorkflow?.nodes) return;
 
-      const updatedNodes = applyNodeChanges(changes, currentWorkflow.nodes);
+      const updatedNodes = applyNodeChanges(changes, currentWorkflow.nodes as Node[]);
       setCurrentWorkflow({
         ...currentWorkflow,
-        nodes: updatedNodes,
+        nodes: updatedNodes.map(node => ({
+          ...node,
+          type: node.type as NodeType,
+          data: {
+            ...node.data,
+            label: node.data?.label || '',
+          }
+        })) as WorkflowNode[],
         updatedAt: new Date().toISOString(),
       });
     },
@@ -137,10 +144,13 @@ export const WorkflowDesigner: React.FC = () => {
     (changes: EdgeChange[]) => {
       if (!currentWorkflow?.edges) return;
 
-      const updatedEdges = applyEdgeChanges(changes, currentWorkflow.edges);
+      const updatedEdges = applyEdgeChanges(changes, currentWorkflow.edges as Edge[]);
       setCurrentWorkflow({
         ...currentWorkflow,
-        edges: updatedEdges,
+        edges: updatedEdges.map(edge => ({
+          ...edge,
+          type: edge.type || 'default',
+        })) as WorkflowEdge[],
         updatedAt: new Date().toISOString(),
       });
 
@@ -160,15 +170,16 @@ export const WorkflowDesigner: React.FC = () => {
         id: `e${params.source}-${params.target}`,
         source: params.source,
         target: params.target,
-        type: 'default',
+        type: 'default' as EdgeType,
         animated: false,
         style: defaultEdgeOptions.style,
         markerEnd: defaultEdgeOptions.markerEnd,
+        data: {}
       };
 
       setCurrentWorkflow({
         ...currentWorkflow,
-        edges: addEdge(newEdge, currentWorkflow.edges || []),
+        edges: [...(currentWorkflow.edges || []), newEdge],
         updatedAt: new Date().toISOString(),
       });
     },
@@ -244,8 +255,12 @@ export const WorkflowDesigner: React.FC = () => {
     <Box sx={{ width: '100%', height: '100vh', bgcolor: 'background.default', position: 'relative' }}>
       <Toolbar />
       <ReactFlow
-        nodes={currentWorkflow.nodes}
-        edges={currentWorkflow.edges}
+        nodes={currentWorkflow.nodes as Node[]}
+        edges={currentWorkflow.edges.map(edge => ({
+          ...edge,
+          type: edge.type || 'default',
+          markerEnd: edge.markerEnd || defaultEdgeOptions.markerEnd,
+        })) as Edge[]}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}

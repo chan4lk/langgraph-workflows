@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Workflow, WorkflowNode, WorkflowEdge, NodeType, EdgeType } from '../types/workflow';
+import { Workflow, WorkflowNode, WorkflowEdge } from '../types/workflow';
 
 interface WorkflowState {
   workflows: Workflow[];

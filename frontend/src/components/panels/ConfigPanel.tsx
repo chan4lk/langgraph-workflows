@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Paper,
   Typography,
-  Box,
   TextField,
   Select,
   MenuItem,
@@ -47,7 +46,7 @@ export const ConfigPanel: React.FC = () => {
     );
 
     const renderSpecificFields = () => {
-      switch (selectedNode.type) {
+      switch (selectedNode.type as NodeType) {
         case 'agent':
           return (
             <Stack spacing={2}>
@@ -109,6 +108,9 @@ export const ConfigPanel: React.FC = () => {
             </Stack>
           );
 
+        case 'start':
+        case 'end':
+        case 'function':
         default:
           return null;
       }
