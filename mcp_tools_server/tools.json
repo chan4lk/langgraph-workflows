@@ -1,0 +1,22 @@
+{
+  "tools": [
+    {
+      "name": "add-note",
+      "description": "Add a new note to the system",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the note updated 1"
+          },
+          "content": {
+            "type": "string",
+            "description": "Content of the note"
+          }
+        },
+        "required": ["title", "content"]
+      }
+    }
+  ]
+}

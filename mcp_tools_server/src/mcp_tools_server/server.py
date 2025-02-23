@@ -1,4 +1,6 @@
 import asyncio
+import json
+from pathlib import Path
 
 from mcp.server.models import InitializationOptions
 import mcp.types as types
@@ -98,20 +100,19 @@ async def handle_list_tools() -> list[types.Tool]:
     """
     List available tools.
     Each tool specifies its arguments using JSON Schema validation.
+    Tools are loaded from tools.json configuration file.
     """
+    tools_file = Path(__file__).parent.parent.parent / "tools.json"
+    with open(tools_file, "r") as f:
+        tools_config = json.load(f)
+    
     return [
         types.Tool(
-            name="add-note",
-            description="Add a new note",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string"},
-                    "content": {"type": "string"},
-                },
-                "required": ["name", "content"],
-            },
+            name=tool["name"],
+            description=tool.get("description", ""),
+            inputSchema=tool["parameters"]
         )
+        for tool in tools_config["tools"]
     ]
 
 @server.call_tool()
@@ -128,7 +129,7 @@ async def handle_call_tool(
     if not arguments:
         raise ValueError("Missing arguments")
 
-    note_name = arguments.get("name")
+    note_name = arguments.get("title")
     content = arguments.get("content")
 
     if not note_name or not content:
