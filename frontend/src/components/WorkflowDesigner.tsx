@@ -188,7 +188,6 @@ export const WorkflowDesigner: React.FC = () => {
 
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
-      // Ensure we have all the required data for the node type
       const baseData = {
         label: node.data?.label || '',
         description: node.data?.description || '',
@@ -228,16 +227,20 @@ export const WorkflowDesigner: React.FC = () => {
         draggable: true,
       };
 
-      setSelectedNode(workflowNode);
+      // First clear edge selection
       setSelectedEdge(null);
+      // Then set the selected node
+      setSelectedNode(workflowNode);
     },
     [setSelectedNode, setSelectedEdge]
   );
 
   const onEdgeClick = useCallback(
     (_: React.MouseEvent, edge: Edge) => {
-      setSelectedEdge(edge as WorkflowEdge);
+      // First clear node selection
       setSelectedNode(null);
+      // Then set the selected edge
+      setSelectedEdge(edge as WorkflowEdge);
     },
     [setSelectedNode, setSelectedEdge]
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Paper,
   Typography,
@@ -13,12 +13,20 @@ import { useWorkflowStore } from '../../store/workflowStore';
 import { NodeType, EdgeType } from '../../types/workflow';
 
 export const ConfigPanel: React.FC = () => {
-  const { selectedNode, selectedEdge, updateNode, updateEdge } = useWorkflowStore();
+  const selectedNode = useWorkflowStore((state) => state.selectedNode);
+  const selectedEdge = useWorkflowStore((state) => state.selectedEdge);
+  const updateNode = useWorkflowStore((state) => state.updateNode);
+  const updateEdge = useWorkflowStore((state) => state.updateEdge);
+
+  useEffect(() => {
+    console.log('ConfigPanel re-render with:', { selectedNode, selectedEdge });
+  }, [selectedNode, selectedEdge]);
 
   const renderNodeConfig = () => {
+    console.log(selectedNode);
     if (!selectedNode) return null;
 
-    const handleNodeUpdate = (field: string, value: any) => {
+    const handleNodeUpdate = (field: string, value: unknown) => {
       updateNode(selectedNode.id, {
         data: { ...selectedNode.data, [field]: value }
       });
@@ -132,10 +140,8 @@ export const ConfigPanel: React.FC = () => {
 
     return (
       <Stack spacing={2}>
-        <Typography variant="h6" gutterBottom>
-          Edge Configuration
-        </Typography>
-        <FormControl fullWidth size="small">
+        <Typography variant="h6">Edge Configuration</Typography>
+        <FormControl fullWidth>
           <InputLabel>Edge Type</InputLabel>
           <Select
             value={selectedEdge.type}
@@ -143,26 +149,10 @@ export const ConfigPanel: React.FC = () => {
             label="Edge Type"
           >
             <MenuItem value="default">Default</MenuItem>
-            <MenuItem value="conditional">Conditional</MenuItem>
-            <MenuItem value="fork">Fork</MenuItem>
-            <MenuItem value="join">Join</MenuItem>
+            <MenuItem value="success">Success</MenuItem>
+            <MenuItem value="failure">Failure</MenuItem>
           </Select>
         </FormControl>
-        {selectedEdge.type === 'conditional' && (
-          <TextField
-            fullWidth
-            label="Condition Expression"
-            value={selectedEdge.data?.conditionExpression || ''}
-            onChange={(e) => 
-              updateEdge(selectedEdge.id, { 
-                data: { ...selectedEdge.data, conditionExpression: e.target.value }
-              })
-            }
-            size="small"
-            multiline
-            rows={2}
-          />
-        )}
       </Stack>
     );
   };
