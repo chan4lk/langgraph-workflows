@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   Paper, 
   List, 
@@ -7,25 +6,18 @@ import {
   ListItemButton,
   Tooltip,
   Divider,
-  Box,
-  Typography
 } from '@mui/material';
 import {
+  SmartToy,
+  Person,
+  Functions,
   PlayArrow,
   Stop,
-  SmartToy,
-  Functions,
-  Person,
   AccountTree
 } from '@mui/icons-material';
 import { useWorkflowStore } from '../store/workflowStore';
 import { NodeType, WorkflowNode } from '../types/workflow';
-import { 
-  getDefaultNodeData, 
-  getAgentNodeData, 
-  getHumanTaskNodeData, 
-  getSubWorkflowNodeData 
-} from '../utils/nodeDefaults';
+import { NodeFactory } from '../nodes/NodeFactory';
 
 interface Position {
   x: number;
@@ -40,35 +32,14 @@ const getNextNodePosition = (nodes: WorkflowNode[]): Position => {
   return { x: 250, y: maxY + 100 };
 };
 
-export const Toolbar: React.FC = () => {
-  const { addNode, currentWorkflow } = useWorkflowStore();
+export const Toolbar = () => {
+  const nodes = useWorkflowStore((state) => state.currentWorkflow?.nodes || []);
+  const addNode = useWorkflowStore((state) => state.addNode);
 
   const handleAddNode = (type: NodeType) => {
-    const position = getNextNodePosition(currentWorkflow?.nodes || []);
-    
-    const nodeData = {
-      id: `${type}-${Date.now()}`,
-      type,
-      position,
-      draggable: true,
-      data: getDefaultNodeData()
-    };
-
-    switch (type) {
-      case 'agent':
-        nodeData.data = getAgentNodeData();
-        break;
-      case 'human_task':
-        nodeData.data = getHumanTaskNodeData();
-        break;
-      case 'sub_workflow':
-        nodeData.data = getSubWorkflowNodeData();
-        break;
-      default:
-        nodeData.data.label = type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ');
-    }
-
-    addNode(nodeData);
+    const position = getNextNodePosition(nodes);
+    const node = NodeFactory.createNode(type, position);
+    addNode(node);
   };
 
   return (
@@ -81,40 +52,11 @@ export const Toolbar: React.FC = () => {
         width: 'auto',
         zIndex: 1000,
         borderRadius: 2,
-        bgcolor: 'background.paper',
       }}
     >
-      <Box sx={{ p: 1 }}>
-        <Typography variant="subtitle2" sx={{ px: 1, color: 'text.secondary' }}>
-          Add Nodes
-        </Typography>
-      </Box>
-      <Divider />
       <List>
         <ListItem disablePadding>
-          <Tooltip title="Start Node" placement="right">
-            <ListItemButton onClick={() => handleAddNode('start')}>
-              <ListItemIcon>
-                <PlayArrow color="success" />
-              </ListItemIcon>
-            </ListItemButton>
-          </Tooltip>
-        </ListItem>
-
-        <ListItem disablePadding>
-          <Tooltip title="End Node" placement="right">
-            <ListItemButton onClick={() => handleAddNode('end')}>
-              <ListItemIcon>
-                <Stop color="error" />
-              </ListItemIcon>
-            </ListItemButton>
-          </Tooltip>
-        </ListItem>
-
-        <Divider />
-
-        <ListItem disablePadding>
-          <Tooltip title="Agent Node" placement="right">
+          <Tooltip title="Add Agent" placement="right">
             <ListItemButton onClick={() => handleAddNode('agent')}>
               <ListItemIcon>
                 <SmartToy />
@@ -122,19 +64,8 @@ export const Toolbar: React.FC = () => {
             </ListItemButton>
           </Tooltip>
         </ListItem>
-
         <ListItem disablePadding>
-          <Tooltip title="Function Node" placement="right">
-            <ListItemButton onClick={() => handleAddNode('function')}>
-              <ListItemIcon>
-                <Functions />
-              </ListItemIcon>
-            </ListItemButton>
-          </Tooltip>
-        </ListItem>
-
-        <ListItem disablePadding>
-          <Tooltip title="Human Task Node" placement="right">
+          <Tooltip title="Add Human Task" placement="right">
             <ListItemButton onClick={() => handleAddNode('human_task')}>
               <ListItemIcon>
                 <Person />
@@ -142,12 +73,39 @@ export const Toolbar: React.FC = () => {
             </ListItemButton>
           </Tooltip>
         </ListItem>
-
         <ListItem disablePadding>
-          <Tooltip title="Sub-workflow Node" placement="right">
+          <Tooltip title="Add Function" placement="right">
+            <ListItemButton onClick={() => handleAddNode('function')}>
+              <ListItemIcon>
+                <Functions />
+              </ListItemIcon>
+            </ListItemButton>
+          </Tooltip>
+        </ListItem>
+        <ListItem disablePadding>
+          <Tooltip title="Add Sub-workflow" placement="right">
             <ListItemButton onClick={() => handleAddNode('sub_workflow')}>
               <ListItemIcon>
                 <AccountTree />
+              </ListItemIcon>
+            </ListItemButton>
+          </Tooltip>
+        </ListItem>
+        <Divider />
+        <ListItem disablePadding>
+          <Tooltip title="Add Start" placement="right">
+            <ListItemButton onClick={() => handleAddNode('start')}>
+              <ListItemIcon>
+                <PlayArrow />
+              </ListItemIcon>
+            </ListItemButton>
+          </Tooltip>
+        </ListItem>
+        <ListItem disablePadding>
+          <Tooltip title="Add End" placement="right">
+            <ListItemButton onClick={() => handleAddNode('end')}>
+              <ListItemIcon>
+                <Stop />
               </ListItemIcon>
             </ListItemButton>
           </Tooltip>

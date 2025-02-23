@@ -19,13 +19,13 @@ import {
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Edit as EditIcon,
   Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useWorkflowStore } from '../../store/workflowStore';
-import { NodeData, PromptTemplate, Tool, EdgeData } from '../../types/workflow';
+import { NodeData, PromptTemplate, Tool, EdgeData, NodeType } from '../../types/workflow';
 import { TemplateManager } from '../templates/TemplateManager';
 import { workflowApi } from '../../api/workflowApi';
+import { NodeFactory } from '../../nodes/NodeFactory'; // Import NodeFactory
 
 export const ConfigPanel: React.FC = () => {
   const selectedNode = useWorkflowStore((state) => state.selectedNode);
@@ -72,14 +72,18 @@ export const ConfigPanel: React.FC = () => {
   };
 
   const handleNodeUpdate = <K extends keyof NodeData>(field: K, value: NodeData[K]) => {
-    if (!selectedNode) return;
+    if (!selectedNode || !selectedNode.type) return;
     console.log('Updating node data:', field, value);
+
+    const updatedData = NodeFactory.updateData(
+      selectedNode.type as NodeType,
+      selectedNode.data,
+      { [field]: value }
+    );
+
     updateNode(selectedNode.id, {
       ...selectedNode,
-      data: {
-        ...selectedNode.data,
-        [field]: value,
-      },
+      data: updatedData,
     });
   };
 

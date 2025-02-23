@@ -6,7 +6,9 @@ export type NodeType =
   | 'agent' 
   | 'function' 
   | 'human_task' 
-  | 'sub_workflow';
+  | 'sub_workflow'
+  | 'fork'
+  | 'join';
 
 export type EdgeType = 
   | 'default'
@@ -23,12 +25,26 @@ export interface PromptTemplate {
   updatedAt: string;
 }
 
+export interface ToolConfig {
+  // Common configuration properties
+  name?: string;
+  description?: string;
+  parameters?: {
+    name: string;
+    type: string;
+    description?: string;
+    required?: boolean;
+    default?: string | number | boolean;
+  }[];
+  // Add other specific configuration properties as needed
+}
+
 export interface Tool {
   id: string;
   name: string;
   description: string;
   type: 'function' | 'api' | 'custom';
-  config?: Record<string, any>;
+  config?: ToolConfig;
 }
 
 export interface NodeData {
