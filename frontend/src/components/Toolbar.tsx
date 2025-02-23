@@ -45,6 +45,15 @@ export const Toolbar: React.FC = () => {
       draggable: true,
       data: {
         label: type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' '),
+        description: null,
+        agentName: null,
+        llmConfigId: null,
+        promptTemplateId: '',
+        template: null,
+        tools: [],
+        taskName: null,
+        assignmentRules: null,
+        workflowId: null,
       },
     };
 
@@ -52,8 +61,13 @@ export const Toolbar: React.FC = () => {
       case 'agent':
         nodeData.data = {
           ...nodeData.data,
+          label: 'Agent',
           agentName: 'New Agent',
           description: 'A new agent node',
+          promptTemplateId: '',
+          template: null,
+          tools: [],
+          llmConfigId: 'gpt-4'
         };
         break;
       case 'human_task':

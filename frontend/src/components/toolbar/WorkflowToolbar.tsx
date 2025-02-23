@@ -60,11 +60,25 @@ export const WorkflowToolbar: React.FC = () => {
 
     try {
       setSaveError('');
+      console.log('Saving workflow:', currentWorkflow);
+      let savedWorkflow: Workflow;
+      
       if (currentWorkflow.id) {
-        await workflowApi.updateWorkflow(currentWorkflow.id, currentWorkflow);
+        savedWorkflow = await workflowApi.updateWorkflow(currentWorkflow.id, {
+          ...currentWorkflow,
+          updatedAt: new Date().toISOString()
+        });
       } else {
-        await workflowApi.createWorkflow(currentWorkflow);
+        savedWorkflow = await workflowApi.createWorkflow({
+          ...currentWorkflow,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
       }
+
+      // Update current workflow with saved version
+      setCurrentWorkflow(savedWorkflow);
+      
       // Refresh workflow list
       const workflows = await workflowApi.listWorkflows();
       setWorkflows(workflows);
@@ -86,7 +100,9 @@ export const WorkflowToolbar: React.FC = () => {
 
   const handleLoadWorkflow = async (workflow: Workflow) => {
     try {
+      console.log('Loading workflow:', workflow.id);
       const loadedWorkflow = await workflowApi.getWorkflow(workflow.id);
+      console.log('Loaded workflow:', loadedWorkflow);
       setCurrentWorkflow(loadedWorkflow);
       setOpenLoadDialog(false);
     } catch (error) {

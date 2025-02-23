@@ -18,22 +18,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Data storage path
+# Data storage paths
 DATA_DIR = Path("data")
 WORKFLOWS_FILE = DATA_DIR / "workflows.json"
+TEMPLATES_FILE = DATA_DIR / "templates.json"
 
-# Ensure data directory exists
+# Ensure data directory and files exist
 DATA_DIR.mkdir(exist_ok=True)
-
-# Ensure workflows.json exists with empty array if it doesn't exist
 if not WORKFLOWS_FILE.exists():
     with open(WORKFLOWS_FILE, "w") as f:
+        json.dump([], f)
+if not TEMPLATES_FILE.exists():
+    with open(TEMPLATES_FILE, "w") as f:
         json.dump([], f)
 
 # Models
 class Position(BaseModel):
     x: float
     y: float
+
+class PromptTemplate(BaseModel):
+    id: str
+    name: str
+    content: str
+    description: Optional[str] = None
+    createdAt: str
+    updatedAt: str
 
 class NodeData(BaseModel):
     label: str
@@ -80,7 +90,18 @@ def save_workflows(workflows):
     with open(WORKFLOWS_FILE, "w") as f:
         json.dump(workflows, f, indent=2)
 
-# API endpoints
+def load_templates():
+    try:
+        with open(TEMPLATES_FILE, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+def save_templates(templates):
+    with open(TEMPLATES_FILE, "w") as f:
+        json.dump(templates, f, indent=2)
+
+# Workflow API endpoints
 @app.get("/api/workflows", response_model=List[Workflow])
 async def list_workflows():
     """List all workflows"""
@@ -139,6 +160,66 @@ async def delete_workflow(workflow_id: str):
     
     save_workflows(filtered_workflows)
     return {"message": "Workflow deleted successfully"}
+
+# Prompt Template API endpoints
+@app.get("/api/templates", response_model=List[PromptTemplate])
+async def list_templates():
+    """List all prompt templates"""
+    return load_templates()
+
+@app.get("/api/templates/{template_id}", response_model=PromptTemplate)
+async def get_template(template_id: str):
+    """Get a specific prompt template by ID"""
+    templates = load_templates()
+    template = next((t for t in templates if t["id"] == template_id), None)
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return template
+
+@app.post("/api/templates", response_model=PromptTemplate)
+async def create_template(template: PromptTemplate):
+    """Create a new prompt template"""
+    templates = load_templates()
+    
+    # Check if template with same ID exists
+    if any(t["id"] == template.id for t in templates):
+        raise HTTPException(status_code=400, detail="Template with this ID already exists")
+    
+    template_dict = template.dict()
+    template_dict["createdAt"] = datetime.utcnow().isoformat()
+    template_dict["updatedAt"] = template_dict["createdAt"]
+    
+    templates.append(template_dict)
+    save_templates(templates)
+    return template_dict
+
+@app.put("/api/templates/{template_id}", response_model=PromptTemplate)
+async def update_template(template_id: str, template: PromptTemplate):
+    """Update an existing prompt template"""
+    templates = load_templates()
+    
+    index = next((i for i, t in enumerate(templates) if t["id"] == template_id), None)
+    if index is None:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    template_dict = template.dict()
+    template_dict["updatedAt"] = datetime.utcnow().isoformat()
+    templates[index] = template_dict
+    
+    save_templates(templates)
+    return template_dict
+
+@app.delete("/api/templates/{template_id}")
+async def delete_template(template_id: str):
+    """Delete a prompt template"""
+    templates = load_templates()
+    
+    filtered_templates = [t for t in templates if t["id"] != template_id]
+    if len(filtered_templates) == len(templates):
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    save_templates(filtered_templates)
+    return {"message": "Template deleted successfully"}
 
 if __name__ == "__main__":
     import uvicorn

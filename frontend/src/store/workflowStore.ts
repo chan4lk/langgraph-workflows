@@ -61,17 +61,36 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     set((state) => {
       if (!state.currentWorkflow) return state;
 
-      const updatedNodes = state.currentWorkflow.nodes.map((node) =>
-        node.id === nodeId ? { ...node, ...updates } : node
-      );
+      const updatedNodes = state.currentWorkflow.nodes.map((node) => {
+        if (node.id !== nodeId) return node;
+        
+        // Merge data separately to ensure nested updates work
+        const updatedData = updates.data 
+          ? { ...node.data, ...updates.data }
+          : node.data;
+
+        return {
+          ...node,
+          ...updates,
+          data: updatedData,
+        };
+      });
+
+      const updatedWorkflow = {
+        ...state.currentWorkflow,
+        nodes: updatedNodes,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Update selected node if it's the one being modified
+      const updatedSelectedNode = state.selectedNode?.id === nodeId 
+        ? updatedNodes.find(n => n.id === nodeId) || null
+        : state.selectedNode;
 
       return {
         ...state,
-        currentWorkflow: {
-          ...state.currentWorkflow,
-          nodes: updatedNodes,
-          updatedAt: new Date().toISOString(),
-        },
+        currentWorkflow: updatedWorkflow,
+        selectedNode: updatedSelectedNode,
       };
     });
   },

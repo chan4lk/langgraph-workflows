@@ -14,17 +14,35 @@ export type EdgeType =
   | 'fork'
   | 'join';
 
-interface NodeData {
-  label: string;
-  // Agent node specific data
-  agentName?: string;
+export interface PromptTemplate {
+  id: string;
+  name: string;
+  content: string;
   description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  type: 'function' | 'api' | 'custom';
+  config?: Record<string, any>;
+}
+
+export interface NodeData {
+  label: string;
+  description?: string;
+  // Agent specific fields
+  agentName?: string;
   llmConfigId?: string;
   promptTemplateId?: string;
-  tools?: string[];
-  // Function node specific data
+  template?: PromptTemplate | null;
+  tools?: Tool[];
+  // Function specific fields
   functionName?: string;
-  // Human task node specific data
+  // Human task specific fields
   taskName?: string;
   assignmentRules?: {
     users?: string[];
@@ -35,14 +53,14 @@ interface NodeData {
     type: string;
     required: boolean;
   }[];
-  // Sub-workflow node specific data
+  // Sub-workflow specific fields
   workflowId?: string;
   parameterMapping?: {
     [key: string]: string;
   };
 }
 
-interface EdgeData {
+export interface EdgeData {
   conditionExpression?: string;
 }
 
