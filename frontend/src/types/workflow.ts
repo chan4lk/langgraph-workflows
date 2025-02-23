@@ -1,3 +1,5 @@
+import { Node, Edge } from 'reactflow';
+
 export type NodeType = 
   | 'start' 
   | 'end' 
@@ -12,7 +14,7 @@ export type EdgeType =
   | 'fork'
   | 'join';
 
-export interface WorkflowNode {
+export interface WorkflowNode extends Node {
   id: string;
   type: NodeType;
   position: { x: number; y: number };
@@ -20,12 +22,12 @@ export interface WorkflowNode {
     label: string;
     // Agent node specific data
     agentName?: string;
+    description?: string;
     llmConfigId?: string;
     promptTemplateId?: string;
     tools?: string[];
     // Function node specific data
     functionName?: string;
-    description?: string;
     // Human task node specific data
     taskName?: string;
     assignmentRules?: {
@@ -43,9 +45,11 @@ export interface WorkflowNode {
       [key: string]: string;
     };
   };
+  draggable?: boolean;
+  selectable?: boolean;
 }
 
-export interface WorkflowEdge {
+export interface WorkflowEdge extends Edge {
   id: string;
   source: string;
   target: string;

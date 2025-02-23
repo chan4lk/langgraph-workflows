@@ -1,24 +1,28 @@
+import React from 'react';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import { WorkflowDesigner } from './components/WorkflowDesigner';
 import { ReactFlowProvider } from 'reactflow';
-import 'reactflow/dist/style.css';
+import { WorkflowDesigner } from './components/WorkflowDesigner';
 
 const theme = createTheme({
   palette: {
     mode: 'light',
-    primary: {
-      main: '#2196f3',
-    },
-    secondary: {
-      main: '#f50057',
-    },
     background: {
       default: '#f5f5f5',
+      paper: '#ffffff',
+    },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0px 2px 4px rgba(0,0,0,0.1)',
+        },
+      },
     },
   },
 });
 
-function App() {
+export const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -27,6 +31,4 @@ function App() {
       </ReactFlowProvider>
     </ThemeProvider>
   );
-}
-
-export default App;
+};

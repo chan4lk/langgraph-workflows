@@ -8,20 +8,13 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Button,
+  Stack,
 } from '@mui/material';
 import { useWorkflowStore } from '../../store/workflowStore';
-import { NodeType } from '../../types/workflow';
+import { NodeType, EdgeType } from '../../types/workflow';
 
 export const ConfigPanel: React.FC = () => {
-  const selectedNode = useWorkflowStore((state) => state.selectedNode);
-  const selectedEdge = useWorkflowStore((state) => state.selectedEdge);
-  const updateNode = useWorkflowStore((state) => state.updateNode);
-  const updateEdge = useWorkflowStore((state) => state.updateEdge);
-
-  if (!selectedNode && !selectedEdge) {
-    return null;
-  }
+  const { selectedNode, selectedEdge, updateNode, updateEdge } = useWorkflowStore();
 
   const renderNodeConfig = () => {
     if (!selectedNode) return null;
@@ -33,42 +26,42 @@ export const ConfigPanel: React.FC = () => {
     };
 
     const commonFields = (
-      <>
+      <Stack spacing={2}>
         <TextField
           fullWidth
           label="Label"
-          value={selectedNode.data.label || ''}
+          value={selectedNode.data?.label || ''}
           onChange={(e) => handleNodeUpdate('label', e.target.value)}
-          margin="normal"
+          size="small"
         />
         <TextField
           fullWidth
           label="Description"
-          value={selectedNode.data.description || ''}
+          value={selectedNode.data?.description || ''}
           onChange={(e) => handleNodeUpdate('description', e.target.value)}
-          margin="normal"
           multiline
           rows={2}
+          size="small"
         />
-      </>
+      </Stack>
     );
 
     const renderSpecificFields = () => {
-      switch (selectedNode.type as NodeType) {
+      switch (selectedNode.type) {
         case 'agent':
           return (
-            <>
+            <Stack spacing={2}>
               <TextField
                 fullWidth
                 label="Agent Name"
-                value={selectedNode.data.agentName || ''}
+                value={selectedNode.data?.agentName || ''}
                 onChange={(e) => handleNodeUpdate('agentName', e.target.value)}
-                margin="normal"
+                size="small"
               />
-              <FormControl fullWidth margin="normal">
+              <FormControl fullWidth size="small">
                 <InputLabel>LLM Configuration</InputLabel>
                 <Select
-                  value={selectedNode.data.llmConfigId || ''}
+                  value={selectedNode.data?.llmConfigId || ''}
                   onChange={(e) => handleNodeUpdate('llmConfigId', e.target.value)}
                   label="LLM Configuration"
                 >
@@ -76,30 +69,36 @@ export const ConfigPanel: React.FC = () => {
                   <MenuItem value="gpt-3.5-turbo">GPT-3.5 Turbo</MenuItem>
                 </Select>
               </FormControl>
-            </>
+            </Stack>
           );
 
         case 'human_task':
           return (
-            <>
+            <Stack spacing={2}>
               <TextField
                 fullWidth
                 label="Task Name"
-                value={selectedNode.data.taskName || ''}
+                value={selectedNode.data?.taskName || ''}
                 onChange={(e) => handleNodeUpdate('taskName', e.target.value)}
-                margin="normal"
+                size="small"
               />
-              {/* Add more human task specific fields */}
-            </>
+              <TextField
+                fullWidth
+                label="Assignee"
+                value={selectedNode.data?.assignmentRules?.users?.[0] || ''}
+                onChange={(e) => handleNodeUpdate('assignmentRules', { users: [e.target.value] })}
+                size="small"
+              />
+            </Stack>
           );
 
         case 'sub_workflow':
           return (
-            <>
-              <FormControl fullWidth margin="normal">
+            <Stack spacing={2}>
+              <FormControl fullWidth size="small">
                 <InputLabel>Workflow</InputLabel>
                 <Select
-                  value={selectedNode.data.workflowId || ''}
+                  value={selectedNode.data?.workflowId || ''}
                   onChange={(e) => handleNodeUpdate('workflowId', e.target.value)}
                   label="Workflow"
                 >
@@ -107,8 +106,7 @@ export const ConfigPanel: React.FC = () => {
                   <MenuItem value="workflow2">Workflow 2</MenuItem>
                 </Select>
               </FormControl>
-              {/* Add parameter mapping fields */}
-            </>
+            </Stack>
           );
 
         default:
@@ -117,13 +115,13 @@ export const ConfigPanel: React.FC = () => {
     };
 
     return (
-      <>
+      <Stack spacing={2}>
         <Typography variant="h6" gutterBottom>
           Node Configuration
         </Typography>
         {commonFields}
         {renderSpecificFields()}
-      </>
+      </Stack>
     );
   };
 
@@ -131,15 +129,15 @@ export const ConfigPanel: React.FC = () => {
     if (!selectedEdge) return null;
 
     return (
-      <>
+      <Stack spacing={2}>
         <Typography variant="h6" gutterBottom>
           Edge Configuration
         </Typography>
-        <FormControl fullWidth margin="normal">
+        <FormControl fullWidth size="small">
           <InputLabel>Edge Type</InputLabel>
           <Select
             value={selectedEdge.type}
-            onChange={(e) => updateEdge(selectedEdge.id, { type: e.target.value })}
+            onChange={(e) => updateEdge(selectedEdge.id, { type: e.target.value as EdgeType })}
             label="Edge Type"
           >
             <MenuItem value="default">Default</MenuItem>
@@ -158,31 +156,39 @@ export const ConfigPanel: React.FC = () => {
                 data: { ...selectedEdge.data, conditionExpression: e.target.value }
               })
             }
-            margin="normal"
+            size="small"
             multiline
             rows={2}
           />
         )}
-      </>
+      </Stack>
     );
   };
 
+  if (!selectedNode && !selectedEdge) {
+    return null;
+  }
+
   return (
     <Paper
+      elevation={3}
       sx={{
         position: 'fixed',
         right: 20,
         top: 20,
         width: 300,
-        padding: 2,
+        padding: 3,
         maxHeight: 'calc(100vh - 40px)',
         overflowY: 'auto',
+        zIndex: 9999,
+        backgroundColor: 'background.paper',
+        borderRadius: 2,
       }}
     >
-      <Box>
-        {renderNodeConfig()}
-        {renderEdgeConfig()}
-      </Box>
+      <Stack spacing={3}>
+        {selectedNode && renderNodeConfig()}
+        {selectedEdge && renderEdgeConfig()}
+      </Stack>
     </Paper>
   );
 };
