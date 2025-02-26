@@ -1,0 +1,8 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "agent": "./src/react_agent/graph.py:graph",
+    "mermaid_fixer": "./src/mermaid_fixer/graph.py:graph"
+  },
+  "env": ".env"
+}
