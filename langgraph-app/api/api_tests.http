@@ -1,0 +1,82 @@
+### Variables
+@baseUrl = http://localhost:8000
+@contentType = application/json
+
+### Process a new lead from Slack
+# This will extract lead info and assign a sales person
+POST {{baseUrl}}/api/slack/lead
+Content-Type: {{contentType}}
+
+{
+  "event": "message",
+  "user": {
+    "id": "U123456",
+    "name": "John Doe",
+    "email": "john.doe@example.com"
+  },
+  "slack_message": {
+    "text": "Hi, I'm interested in your product. I work for a healthcare company in New York and we're looking for a solution to manage our patient data. We have about 500 employees and are growing rapidly.",
+    "channel": "C123456",
+    "ts": "1234567890.123456"
+  }
+}
+
+### Get thread status
+# Replace {thread_id} with the actual thread ID from the previous response
+GET {{baseUrl}}/api/slack/thread/{thread_id}
+
+### Approve a lead assignment
+# Replace {thread_id} with the actual thread ID from the previous response
+POST {{baseUrl}}/api/slack/approve
+Content-Type: {{contentType}}
+
+{
+  "thread_id": "{thread_id}",
+  "approved": true
+}
+
+### Reject a lead assignment
+# Replace {thread_id} with the actual thread ID from the previous response
+POST {{baseUrl}}/api/slack/approve
+Content-Type: {{contentType}}
+
+{
+  "thread_id": "{thread_id}",
+  "approved": false
+}
+
+### Test with a different industry and location
+POST {{baseUrl}}/api/slack/lead
+Content-Type: {{contentType}}
+
+{
+  "event": "message",
+  "user": {
+    "id": "U654321",
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com"
+  },
+  "slack_message": {
+    "text": "Hello, we're a financial services company based in London. We're interested in your product for our customer relationship management. We currently have around 200 employees.",
+    "channel": "C654321",
+    "ts": "9876543210.654321"
+  }
+}
+
+### Test with a technology company
+POST {{baseUrl}}/api/slack/lead
+Content-Type: {{contentType}}
+
+{
+  "event": "message",
+  "user": {
+    "id": "U789012",
+    "name": "Alex Johnson",
+    "email": "alex.johnson@example.com"
+  },
+  "slack_message": {
+    "text": "We're a tech startup in San Francisco developing AI solutions. We're looking for a tool to help us manage our sales pipeline. We're a small team of 25 people but growing fast.",
+    "channel": "C789012",
+    "ts": "1357924680.789012"
+  }
+}

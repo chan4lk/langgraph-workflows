@@ -28,11 +28,12 @@ requires = ["setuptools>=73.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["langgraph.templates.react_agent", "react_agent"]
+packages = ["langgraph.templates.react_agent", "react_agent", "langgraph.templates.slack_approval", "slack_approval"]
 [tool.setuptools.package-dir]
 "langgraph.templates.react_agent" = "src/react_agent"
 "react_agent" = "src/react_agent"
-
+"langgraph.templates.slack_approval" = "src/slack_approval"
+"slack_approval" = "src/slack_approval"
 
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
