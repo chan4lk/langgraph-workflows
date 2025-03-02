@@ -28,7 +28,7 @@ The workflow is composed of the following components:
 To start the LangGraph server:
 
 ```bash
-python start_server.py
+uvx --refresh --from "langgraph-cli[inmem]" --with-editable . --python 3.11 langgraph dev
 ```
 
 This will start a server on http://localhost:2024 that exposes the Slack lead processing workflow as an API.

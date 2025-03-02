@@ -3,7 +3,8 @@
   "graphs": {
     "agent": "./src/react_agent/graph.py:graph",
     "mermaid_fixer": "./src/mermaid_fixer/graph.py:graph",
-    "slack_approval": "./src/slack_approval/graph.py:graph"
+    "slack_approval": "./src/slack_approval/graph.py:graph",
+    "swot_analyzer": "./src/swot_analyzer/swot_agent.py:graph"
   },
   "env": ".env"
 }
