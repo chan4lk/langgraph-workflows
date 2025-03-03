@@ -1,1 +1,100 @@
-[]
+[
+    {
+        "id": "workflow-1741016666871",
+        "name": "New Workflow",
+        "description": "A new workflow",
+        "version": "1.0.0",
+        "nodes": [
+            {
+                "id": "start-1741016679165",
+                "type": "start",
+                "position": {
+                    "x": 250,
+                    "y": 100
+                },
+                "draggable": true,
+                "data": {
+                    "label": "Start",
+                    "type": "start"
+                },
+                "width": 180,
+                "height": 64
+            },
+            {
+                "id": "end-1741016680063",
+                "type": "end",
+                "position": {
+                    "x": 210,
+                    "y": 345
+                },
+                "draggable": true,
+                "data": {
+                    "label": "End",
+                    "type": "end"
+                },
+                "width": 180,
+                "height": 64,
+                "selected": false,
+                "positionAbsolute": {
+                    "x": 210,
+                    "y": 345
+                },
+                "dragging": false
+            },
+            {
+                "id": "agent-1741016681873",
+                "type": "agent",
+                "position": {
+                    "x": 480,
+                    "y": 120
+                },
+                "draggable": true,
+                "data": {
+                    "label": "Agent",
+                    "type": "agent",
+                    "description": "A new agent node",
+                    "agentName": "New Agent",
+                    "llmConfigId": "gpt-4",
+                    "promptTemplateId": "",
+                    "template": null,
+                    "tools": [],
+                    "functionName": "",
+                    "taskName": "",
+                    "assignmentRules": {
+                        "users": [],
+                        "groups": []
+                    },
+                    "inputFields": [],
+                    "workflowId": "",
+                    "parameterMapping": {}
+                },
+                "width": 199,
+                "height": 140,
+                "selected": false,
+                "positionAbsolute": {
+                    "x": 480,
+                    "y": 120
+                },
+                "dragging": false
+            }
+        ],
+        "edges": [
+            {
+                "id": "estart-1741016679165-agent-1741016681873",
+                "source": "start-1741016679165",
+                "target": "agent-1741016681873",
+                "type": "smoothstep",
+                "data": {}
+            },
+            {
+                "id": "eagent-1741016681873-end-1741016680063",
+                "source": "agent-1741016681873",
+                "target": "end-1741016680063",
+                "type": "smoothstep",
+                "data": {}
+            }
+        ],
+        "createdAt": "2025-03-03T15:44:26.871Z",
+        "updatedAt": "2025-03-03T15:44:50.743Z"
+    }
+]

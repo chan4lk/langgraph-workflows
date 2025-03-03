@@ -5,13 +5,14 @@ from typing import Dict, Any
 # Import the SWOTState class from swot_agent
 # Note: Using a string to avoid circular import
 from typing import TYPE_CHECKING
-from swot_analyzer.state import State
+from swot_analyzer.state import State, InputState
 
 LM_STUDIO_API_URL = "http://localhost:1234/v1"  # Base URL for LM Studio API
 
 llm = ChatOpenAI(
     base_url=LM_STUDIO_API_URL,
     temperature=0,
+    max_tokens=100,
     api_key="not-needed",  # Dummy API key, not required for LM Studio in local mode
 )
 
@@ -28,7 +29,7 @@ def call_lm_studio(prompt: str) -> str:
         return "Error communicating with LM Studio."
 
 
-def strengths_node(state: State):
+def strengths_node(state: InputState):
     """
     Node to identify strengths using LM Studio.
     """
