@@ -25,3 +25,13 @@ THREATS_PROMPT = """Based on the following description, list the threats:
 
 Threats:
 """
+
+SUMMARY_PROMPT = """Based on the following description, summarize the SWOT analysis:
+
+strengths: {strengths}
+weaknesses: {weaknesses}
+opportunities: {opportunities}
+threats: {threats}
+
+Summary:
+"""

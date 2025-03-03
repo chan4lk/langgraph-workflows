@@ -1,12 +1,11 @@
 from langchain_openai import ChatOpenAI
-from .prompts import STRENGTHS_PROMPT, WEAKNESSES_PROMPT, OPPORTUNITIES_PROMPT, THREATS_PROMPT
+from .prompts import STRENGTHS_PROMPT, WEAKNESSES_PROMPT, OPPORTUNITIES_PROMPT, THREATS_PROMPT, SUMMARY_PROMPT 
 from typing import Dict, Any
 
 # Import the SWOTState class from swot_agent
 # Note: Using a string to avoid circular import
 from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from swot_analyzer.swot_agent import SWOTState
+from swot_analyzer.state import State
 
 LM_STUDIO_API_URL = "http://localhost:1234/v1"  # Base URL for LM Studio API
 
@@ -29,76 +28,70 @@ def call_lm_studio(prompt: str) -> str:
         return "Error communicating with LM Studio."
 
 
-def strengths_node(state):
+def strengths_node(state: State):
     """
     Node to identify strengths using LM Studio.
     """
     print("Strengths Node")
-    prompt = STRENGTHS_PROMPT.format(user_input=state.keys.get("user_input", ""))
+    prompt = STRENGTHS_PROMPT.format(user_input=state.messages[-1].content)
     strengths = call_lm_studio(prompt)
-    state.keys["strengths"] = strengths
+    state.strenths = strengths
     return state
 
 
-def weaknesses_node(state):
+def weaknesses_node(state: State):
     """
     Node to identify weaknesses using LM Studio.
     """
     print("Weaknesses Node")
-    prompt = WEAKNESSES_PROMPT.format(user_input=state.keys.get("user_input", ""))
+    prompt = WEAKNESSES_PROMPT.format(user_input=state.messages[-1].content)
     weaknesses = call_lm_studio(prompt)
-    state.keys["weaknesses"] = weaknesses
+    state.weaknesses = weaknesses
     return state
 
 
-def opportunities_node(state):
+def opportunities_node(state: State):
     """
     Node to identify opportunities using LM Studio.
     """
     print("Opportunities Node")
-    prompt = OPPORTUNITIES_PROMPT.format(user_input=state.keys.get("user_input", ""))
+    prompt = OPPORTUNITIES_PROMPT.format(user_input=state.messages[-1].content)
     opportunities = call_lm_studio(prompt)
-    state.keys["opportunities"] = opportunities
+    state.opportunities = opportunities
     return state
 
 
-def threats_node(state):
+def threats_node(state: State):
     """
     Node to identify threats using LM Studio.
     """
     print("Threats Node")
-    prompt = THREATS_PROMPT.format(user_input=state.keys.get("user_input", ""))
+    prompt = THREATS_PROMPT.format(user_input=state.messages[-1].content)
     threats = call_lm_studio(prompt)
-    state.keys["threats"] = threats
+    state.threats = threats
     return state
 
 
-def summarize_analysis(state):
+def summarize_analysis(state: State):
     """
     Node to summarize the SWOT analysis.
     """
     print("Summarize Analysis Node")
-    strengths = state.keys.get("strengths", "Not found")
-    weaknesses = state.keys.get("weaknesses", "Not found")
-    opportunities = state.keys.get("opportunities", "Not found")
-    threats = state.keys.get("threats", "Not found")
-
-    analysis_summary = f"""
-    SWOT Analysis Summary:
-
-    Strengths: {strengths}
-    Weaknesses: {weaknesses}
-    Opportunities: {opportunities}
-    Threats: {threats}
-    """
-    state.keys["analysis_summary"] = analysis_summary
+    prompt = SUMMARY_PROMPT.format(
+        strengths=state.strenths,
+        weaknesses=state.weaknesses,
+        opportunities=state.opportunities,
+        threats=state.threats,
+    )
+    analysis_summary = call_lm_studio(prompt)
+    state.analysis_summary = analysis_summary
     return state
 
 
-def output_node(state):
+def output_node(state: State):
     """
     Node to output the SWOT analysis.
     """
     print("Output Node")
-    print(state.keys.get("analysis_summary", "No analysis summary available"))
+    print(state.analysis_summary)
     return state
