@@ -34,6 +34,12 @@ uvicorn main:app --reload
 
 The API will be available at http://localhost:8000.
 
+
+## Test with client
+```bash
+python client.py
+```
+
 ## API Endpoints
 
 ### Process a Lead

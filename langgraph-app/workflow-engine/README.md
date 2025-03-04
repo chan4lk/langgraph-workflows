@@ -31,11 +31,24 @@ To start the LangGraph server:
 uvx --refresh --from "langgraph-cli[inmem]" --with-editable . --python 3.11 langgraph dev
 ```
 
-This will start a server on http://localhost:2024 that exposes the Slack lead processing workflow as an API.
+## Build image
+
+```bash
+uvx --refresh --from "langgraph-cli[inmem]" --with-editable . --python 3.11 langgraph build -t chan4lk/langgraph-workflows
+```
+
+## Run the langgraph server with docker
+
+```bash
+docker compose up -d
+```
+
+This will start a server on http://localhost:8123 that exposes the Slack lead processing workflow as an API.
 
 ## Integration with FastAPI
 
 The workflow is designed to be used with the FastAPI application in the `api` directory. The API connects to the LangGraph server using the LangGraph SDK and provides endpoints for processing leads, approving assignments, and checking workflow status.
+
 
 ## Configuration
 

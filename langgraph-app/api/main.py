@@ -30,7 +30,7 @@ app.add_middleware(
 )
 
 # Initialize LangGraph client
-client = get_client(url="http://localhost:2024")
+client = get_client(url="http://localhost:8123")
 
 
 # Request models
