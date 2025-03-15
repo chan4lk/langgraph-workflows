@@ -14,7 +14,7 @@ from cv_analyzer.agents import (
     JobRequirements,
 )
 
-class CVScreeningState(TypedDict):
+class CVScreeningState(TypedDict, total=False):
     cv_folder_path: str
     job_description: str
     cv_data_list: List[CVData]
@@ -68,7 +68,7 @@ def create_cv_screening_graph() -> Graph:
 
     # Node 5: Process User Query
     def process_user_query(state: CVScreeningState) -> CVScreeningState:
-        if state["user_query"]:
+        if state.get("user_query"):
             state["ranked_candidates"] = user_query_agent.process(
                 state["user_query"],
                 state["ranked_candidates"]
@@ -82,7 +82,8 @@ def create_cv_screening_graph() -> Graph:
 
     # Conditional: Check if should continue
     def should_continue(state: CVScreeningState) -> str:
-        return "continue" if state["should_continue"] else "end"
+        # Default to "end" if should_continue is not in state
+        return "continue" if state.get("should_continue", False) else "end"
 
     # Add nodes to the graph
     workflow.add_node("read_cvs", read_cvs)
@@ -112,7 +113,6 @@ def create_cv_screening_graph() -> Graph:
 
     return workflow.compile()
 
-graph = create_cv_screening_graph()
 def run_cv_screening(
     cv_folder_path: str,
     job_description: str,
@@ -133,23 +133,26 @@ def run_cv_screening(
     """
     graph = create_cv_screening_graph()
     
-    # Initialize the state
-    initial_state = CVScreeningState(
-        cv_folder_path=cv_folder_path,
-        job_description=job_description,
-        cv_data_list=[],
-        job_requirements={
+    # Initialize the state with all required fields
+    initial_state: CVScreeningState = {
+        "cv_folder_path": cv_folder_path,
+        "job_description": job_description,
+        "cv_data_list": [],
+        "job_requirements": {
             "required_skills": [],
             "desired_experience": [],
             "qualifications": [],
             "key_responsibilities": []
         },
-        ranked_candidates=[],
-        user_query=user_query,
-        output="",
-        should_continue=should_continue
-    )
+        "ranked_candidates": [],
+        "user_query": user_query,
+        "output": "",
+        "should_continue": should_continue
+    }
     
     # Run the graph
     final_state = graph.invoke(initial_state)
     return final_state
+
+# Export a compiled graph instance
+graph = create_cv_screening_graph()

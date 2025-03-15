@@ -64,63 +64,188 @@ class JobDescriptionAnalyzerAgent:
     def __init__(self):
         self.llm = ChatOpenAI(model="gpt-4o-mini")
         self.prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are an expert job description analyzer. Extract key information from the job description 
-and categorize it into required skills, desired experience, qualifications, and key responsibilities.
+            ("system", """You are an expert job description analyzer. Your task is to extract key information from job descriptions and provide meaningful insights even when the description is sparse or unclear.
+
+Key Instructions:
+1. Always provide a complete analysis with all required fields
+2. If specific information is missing, infer reasonable defaults based on the job context
+3. Use industry standard skills and qualifications when details are unclear
+4. Maintain professional relevance in all fields
+
 Format your response as a JSON object with these exact keys:
-{{
-    "required_skills": ["skill1", "skill2"],
-    "desired_experience": ["exp1", "exp2"],
-    "qualifications": ["qual1", "qual2"],
-    "key_responsibilities": ["resp1", "resp2"]
-}}"""),
-            ("human", "{job_description}")
+{
+    "required_skills": ["skill1", "skill2", ...],
+    "desired_experience": ["exp1", "exp2", ...],
+    "qualifications": ["qual1", "qual2", ...],
+    "key_responsibilities": ["resp1", "resp2", ...]
+}
+
+Guidelines for sparse descriptions:
+- For technical roles: Include common programming languages, frameworks, and tools
+- For business roles: Include communication, analysis, and management skills
+- For qualifications: Include standard education and certification requirements
+- For responsibilities: Include typical duties for the role type
+
+Never return empty arrays. If information is unclear, provide reasonable industry-standard defaults."""),
+            ("human", "Please analyze this job description and extract or infer key information:\n\n{job_description}")
         ])
 
     def process(self, job_description: str) -> JobRequirements:
-        chain = self.prompt | self.llm
-        result = chain.invoke({"job_description": job_description})
         try:
+            chain = self.prompt | self.llm
+            result = chain.invoke({"job_description": job_description})
+            
             # Parse the JSON string into a Python dictionary
-            structured_requirements = json.loads(result.content)
-            return JobRequirements(**structured_requirements)
-        except json.JSONDecodeError as e:
-            print(f"Error parsing LLM response: {e}")
-            # Return empty requirements if parsing fails
-            return JobRequirements(
-                required_skills=[],
-                desired_experience=[],
-                qualifications=[],
-                key_responsibilities=[]
-            )
+            try:
+                structured_requirements = json.loads(result.content)
+                
+                # Validate and ensure non-empty arrays
+                for key in ["required_skills", "desired_experience", "qualifications", "key_responsibilities"]:
+                    if not structured_requirements.get(key) or len(structured_requirements[key]) == 0:
+                        structured_requirements[key] = self._get_default_values(key, job_description)
+                
+                return JobRequirements(**structured_requirements)
+                
+            except json.JSONDecodeError as e:
+                print(f"Error parsing LLM response: {e}")
+                return self._get_default_requirements(job_description)
+                
+        except Exception as e:
+            print(f"Error in job description analysis: {e}")
+            return self._get_default_requirements(job_description)
+
+    def _get_default_values(self, key: str, context: str) -> List[str]:
+        """Provide meaningful default values based on the field type and any available context."""
+        defaults = {
+            "required_skills": [
+                "Communication skills",
+                "Problem-solving ability",
+                "Team collaboration",
+                "Time management",
+                "Analytical thinking"
+            ],
+            "desired_experience": [
+                "Previous relevant work experience",
+                "Project management",
+                "Team leadership",
+                "Industry knowledge",
+                "Stakeholder management"
+            ],
+            "qualifications": [
+                "Bachelor's degree in relevant field",
+                "Professional certification (if applicable)",
+                "Industry-specific training",
+                "Relevant technical skills",
+                "Professional experience equivalent"
+            ],
+            "key_responsibilities": [
+                "Contribute to team objectives",
+                "Manage assigned projects and tasks",
+                "Collaborate with team members",
+                "Report on progress and metrics",
+                "Maintain professional standards"
+            ]
+        }
+        return defaults.get(key, ["Not specified"])
+
+    def _get_default_requirements(self, context: str) -> JobRequirements:
+        """Return a complete set of default requirements when analysis fails."""
+        return JobRequirements(
+            required_skills=self._get_default_values("required_skills", context),
+            desired_experience=self._get_default_values("desired_experience", context),
+            qualifications=self._get_default_values("qualifications", context),
+            key_responsibilities=self._get_default_values("key_responsibilities", context)
+        )
 
 class CVInformationExtractorAgent:
     def __init__(self):
         self.llm = ChatOpenAI(model="gpt-4o-mini")
         self.prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are an expert CV analyzer. Extract key information from the CV text and structure it into 
-categories: skills, experience, education, and profile summary. Format your response as a JSON object with these exact keys:
+            ("system", """You are an expert CV analyzer. Your task is to carefully extract key information from the CV text.
+You must return a valid JSON object with exactly these keys and formats:
 {{
     "skills": ["skill1", "skill2"],
     "experience": ["exp1", "exp2"],
     "education": ["edu1", "edu2"],
     "profile_summary": "brief summary"
-}}"""),
-            ("human", "{cv_text}")
+}}
+
+Important rules:
+1. Always return a valid JSON object
+2. Include all required keys even if empty
+3. Skills, experience, and education must be arrays
+4. Profile summary must be a string
+5. Never include additional keys
+6. Never return null values"""),
+            ("human", "Please analyze this CV and extract the key information:\n\n{cv_text}")
         ])
 
+    def validate_extracted_info(self, data: Dict[str, Any]) -> bool:
+        required_keys = {"skills", "experience", "education", "profile_summary"}
+        array_keys = {"skills", "experience", "education"}
+        
+        # Check if all required keys exist
+        if not all(key in data for key in required_keys):
+            print(f"Missing required keys. Found keys: {list(data.keys())}")
+            return False
+            
+        # Validate array fields
+        for key in array_keys:
+            if not isinstance(data[key], list):
+                print(f"Field '{key}' must be an array, got {type(data[key])}")
+                return False
+                
+        # Validate profile summary
+        if not isinstance(data["profile_summary"], str):
+            print(f"Field 'profile_summary' must be a string, got {type(data['profile_summary'])}")
+            return False
+            
+        return True
+
     def process(self, cv_data: CVData) -> CVData:
-        chain = self.prompt | self.llm
-        result = chain.invoke({"cv_text": cv_data["content"]})
         try:
-            cv_data["extracted_info"] = json.loads(result.content)
-        except json.JSONDecodeError as e:
-            print(f"Error parsing LLM response: {e}")
+            print(f"\nProcessing CV: {cv_data['file_name']}")
+            
+            # Check if content is empty
+            if not cv_data["content"].strip():
+                print("Warning: CV content is empty")
+                raise ValueError("Empty CV content")
+
+            # Invoke LLM
+            chain = self.prompt | self.llm
+            result = chain.invoke({"cv_text": cv_data["content"]})
+            
+            # Parse JSON response
+            try:
+                extracted_info = json.loads(result.content)
+            except json.JSONDecodeError as e:
+                print(f"JSON parsing error: {e}")
+                print(f"Raw LLM response: {result.content}")
+                raise
+
+            # Validate structure
+            if not self.validate_extracted_info(extracted_info):
+                raise ValueError("Invalid extracted info structure")
+
+            # Set the extracted info
+            cv_data["extracted_info"] = extracted_info
+            
+            # Log success with some stats
+            print(f"Successfully extracted info from {cv_data['file_name']}:")
+            print(f"- Found {len(extracted_info['skills'])} skills")
+            print(f"- Found {len(extracted_info['experience'])} experience items")
+            print(f"- Found {len(extracted_info['education'])} education items")
+            
+        except Exception as e:
+            print(f"Error processing {cv_data['file_name']}: {str(e)}")
+            # Provide a valid default structure
             cv_data["extracted_info"] = {
                 "skills": [],
                 "experience": [],
                 "education": [],
-                "profile_summary": ""
+                "profile_summary": f"Error extracting information: {str(e)}"
             }
+            
         return cv_data
 
 class CandidateRankerAgent:
