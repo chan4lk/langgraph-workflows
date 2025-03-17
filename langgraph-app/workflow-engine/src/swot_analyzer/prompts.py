@@ -26,6 +26,11 @@ THREATS_PROMPT = """Based on the following description, list the threats:
 Threats:
 """
 
+GREETING_PROMPT = """Generate a short, inspiring motivational quote that would motivate someone to do a thorough SWOT analysis. The quote should be concise, impactful, and encourage strategic thinking.
+
+Motivational Quote:
+"""
+
 SUMMARY_PROMPT = """Based on the following description, summarize the SWOT analysis and provide a future action plan:
 
 strengths: {strengths}

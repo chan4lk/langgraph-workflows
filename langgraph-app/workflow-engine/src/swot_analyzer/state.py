@@ -18,6 +18,7 @@ class InputState:
 
 @dataclass
 class State(InputState):
+   motivational_quote: Optional[str] = None
    strenths: Optional[List[str]] = None
    weaknesses: Optional[List[str]] = None
    opportunities: Optional[List[str]] = None

@@ -1,15 +1,16 @@
 from langchain_openai import ChatOpenAI
-from .prompts import STRENGTHS_PROMPT, WEAKNESSES_PROMPT, OPPORTUNITIES_PROMPT, THREATS_PROMPT, SUMMARY_PROMPT 
+from .prompts import STRENGTHS_PROMPT, WEAKNESSES_PROMPT, OPPORTUNITIES_PROMPT, THREATS_PROMPT, SUMMARY_PROMPT, GREETING_PROMPT
 from typing import Dict, Any
 from langchain_core.tools import tool
 from langgraph.types import interrupt
+from langchain_core.messages import AIMessage
 
 # Import the SWOTState class from swot_agent
 # Note: Using a string to avoid circular import
 from typing import TYPE_CHECKING
 from swot_analyzer.state import State, InputState
 
-LM_STUDIO_API_URL = "http://host.docker.internal:1234/v1"  # Base URL for LM Studio API
+LM_STUDIO_API_URL = "http://127.0.0.1:1234/v1"  # Base URL for LM Studio API
 
 llm = ChatOpenAI(
     base_url=LM_STUDIO_API_URL,
@@ -110,6 +111,25 @@ def summarize_analysis(state: State):
     )
     analysis_summary = call_lm_studio(prompt)
     state.analysis_summary = analysis_summary
+    return state
+
+
+def greetings_node(state: InputState):
+    """
+    Node to generate a motivational quote using LM Studio and add it to messages.
+    """
+    print("Greetings Node")
+    prompt = GREETING_PROMPT
+    motivational_quote = call_lm_studio(prompt)
+    
+    # Store the quote in the state
+    state.motivational_quote = motivational_quote
+    
+    # Add the motivational quote to the messages array
+    quote_message = AIMessage(content=f"Welcome to SWOT Analysis! Here's a motivational quote to inspire your strategic thinking:\n\n{motivational_quote}")
+    state.messages.append(quote_message)
+    
+    print(f"Motivational Quote: {motivational_quote}")
     return state
 
 
