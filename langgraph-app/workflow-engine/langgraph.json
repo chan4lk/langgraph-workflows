@@ -6,7 +6,8 @@
     "slack_approval": "./src/slack_approval/graph.py:graph",
     "swot_analyzer": "./src/swot_analyzer/swot_agent.py:graph",
     "meta_prompter": "./src/meta_prompter/graph.py:graph",
-    "cv_analyzer": "./src/cv_analyzer/graph.py:graph"
+    "cv_analyzer": "./src/cv_analyzer/graph.py:graph",
+    "mcp_agent": "./src/mcp_agent/graph.py:make_graph"
   },
   "env": ".env"
 }
