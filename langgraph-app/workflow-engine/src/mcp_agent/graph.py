@@ -11,6 +11,16 @@ model = ChatOpenAI(model="gpt-4o-mini")
 async def make_graph():
     async with MultiServerMCPClient(
         {
+         "postgres": {
+            "command": "docker",
+            "args": [
+            "run", 
+            "-i", 
+            "--rm", 
+            "mcp/postgres", 
+            "postgresql://postgres:mysecretpassword@host.docker.internal:5432/kaya-ai-platform"],
+            "transport":"stdio"
+        },
             "weather": {
                 # make sure you start your weather server on port 8000
                 "url": "http://localhost:8000/sse",
