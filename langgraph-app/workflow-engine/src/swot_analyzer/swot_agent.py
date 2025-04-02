@@ -32,4 +32,4 @@ graph_builder.add_edge( "summarize_analysis_node" , "output_node" )
 graph_builder.add_edge( "output_node" ,  END )
 
 memory = MemorySaver()
-graph = graph_builder.compile(checkpointer=memory)
+graph = graph_builder.compile()

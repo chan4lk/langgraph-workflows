@@ -40,7 +40,7 @@ requirements_prompt = ChatPromptTemplate.from_messages([
 requirements_parser = JsonOutputParser()
 
 def analyze_requirements(state: AgentState) -> AgentState:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
     chain = requirements_prompt | llm | requirements_parser
     
     # Get the last message if it exists
@@ -80,7 +80,7 @@ ui_flow_prompt = ChatPromptTemplate.from_messages([
 ui_flow_parser = JsonOutputParser()
 
 def generate_ui_flows(state: AgentState) -> AgentState:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
     chain = ui_flow_prompt | llm | ui_flow_parser
     
     # Run the chain
@@ -133,7 +133,7 @@ ui_prompt_template = ChatPromptTemplate.from_messages([
 ])
 
 def generate_ui_prompts(state: AgentState) -> AgentState:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
     chain = ui_prompt_template | llm
     
     # Generate prompts for each screen
