@@ -15,6 +15,23 @@ services:
       interval: 5s
       timeout: 1s
       retries: 5
+
+  # Database initialization container
+  db-init:
+    image: postgres:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./seed:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: elb
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: elb
+    command: >
+      bash -c "PGPASSWORD=postgres psql -h postgres -U elb -d elb -f /docker-entrypoint-initdb.d/schema.sql && 
+               PGPASSWORD=postgres psql -h postgres -U elb -d elb -f /docker-entrypoint-initdb.d/data.sql"
 volumes:
   postgres-data:
     driver: local
