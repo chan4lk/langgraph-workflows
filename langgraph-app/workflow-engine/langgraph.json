@@ -9,7 +9,8 @@
     "cv_analyzer": "./src/cv_analyzer/graph.py:graph",
     "mcp_agent": "./src/mcp_agent/graph.py:make_graph",
     "service_now_mcp": "./src/service_now_mcp/graph.py:make_graph",
-    "credit_agents": "./src/credit_agents/graph.py:graph"
+    "credit_agents": "./src/credit_agents/graph.py:graph",
+    "credit_agents_dynamic": "./src/credit_agents_dynamic/graph.py:graph"
   },
   "env": ".env"
 }

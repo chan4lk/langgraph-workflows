@@ -34,62 +34,62 @@ api.post('/applications', (req, res, { db }) => {
 
 // Credit Checks APIs
 api.get('/credit-check', (req, res, { db }) => {
-  const { application_id } = req.query;
-  const check = db.query('SELECT * FROM credit_checks WHERE application_id = ?', application_id)[0];
+  const { customer_id } = req.query;
+  const check = db.query('SELECT * FROM credit_checks WHERE customer_id = ?', customer_id)[0];
 
   if (check) res.json(check);
   else res.status(404).json({ message: 'Credit Check Not Found' });
 });
 
 api.post('/credit-check', (req, res, { db }) => {
-  const { application_id, credit_score } = req.body;
-  const result = db.query('INSERT INTO credit_checks (application_id, credit_score) VALUES (?, ?) RETURNING *', application_id, credit_score);
+  const { customer_id, credit_score } = req.body;
+  const result = db.query('INSERT INTO credit_checks (customer_id, credit_score) VALUES (?, ?) RETURNING *', customer_id, credit_score);
   res.json(result[0]);
 });
 
 // KYC Checks APIs
 api.get('/kyc-check', (req, res, { db }) => {
-  const { application_id } = req.query;
-  const check = db.query('SELECT * FROM kyc_checks WHERE application_id = ?', application_id)[0];
+  const { customer_id } = req.query;
+  const check = db.query('SELECT * FROM kyc_checks WHERE customer_id = ?', customer_id)[0];
 
   if (check) res.json(check);
   else res.status(404).json({ message: 'KYC Check Not Found' });
 });
 
 api.post('/kyc-check', (req, res, { db }) => {
-  const { application_id, kyc_passed, remarks } = req.body;
-  const result = db.query('INSERT INTO kyc_checks (application_id, kyc_passed, remarks) VALUES (?, ?, ?) RETURNING *', application_id, kyc_passed, remarks);
+  const { customer_id, kyc_passed, remarks } = req.body;
+  const result = db.query('INSERT INTO kyc_checks (customer_id, kyc_passed, remarks) VALUES (?, ?, ?) RETURNING *', customer_id, kyc_passed, remarks);
   res.json(result[0]);
 });
 
 // Income Verification APIs
 api.get('/income-verification', (req, res, { db }) => {
-  const { application_id } = req.query;
-  const income = db.query('SELECT * FROM income_verifications WHERE application_id = ?', application_id)[0];
+  const { customer_id } = req.query;
+  const income = db.query('SELECT * FROM income_verifications WHERE customer_id = ?', customer_id)[0];
 
   if (income) res.json(income);
   else res.status(404).json({ message: 'Income Verification Not Found' });
 });
 
 api.post('/income-verification', (req, res, { db }) => {
-  const { application_id, declared_income, verified_income, remarks } = req.body;
+  const { customer_id, declared_income, verified_income, remarks } = req.body;
   const status = declared_income === verified_income ? 'Completed' : 'Mismatch';
-  const result = db.query('INSERT INTO income_verifications (application_id, declared_income, verified_income, remarks, status) VALUES (?, ?, ?, ?, ?) RETURNING *', application_id, declared_income, verified_income, remarks, status);
+  const result = db.query('INSERT INTO income_verifications (customer_id, declared_income, verified_income, remarks, status) VALUES (?, ?, ?, ?, ?) RETURNING *', customer_id, declared_income, verified_income, remarks, status);
   res.json(result[0]);
 });
 
 // Background Checks APIs
 api.get('/background-check', (req, res, { db }) => {
-  const { application_id } = req.query;
-  const check = db.query('SELECT * FROM background_checks WHERE application_id = ?', application_id)[0];
+  const { customer_id } = req.query;
+  const check = db.query('SELECT * FROM background_checks WHERE customer_id = ?', customer_id)[0];
 
   if (check) res.json(check);
   else res.status(404).json({ message: 'Background Check Not Found' });
 });
 
 api.post('/background-check', (req, res, { db }) => {
-  const { application_id, criminal_record, debt_collections, remarks } = req.body;
-  const result = db.query('INSERT INTO background_checks (application_id, criminal_record, debt_collections, remarks) VALUES (?, ?, ?, ?) RETURNING *', application_id, criminal_record, debt_collections, remarks);
+  const { customer_id, criminal_record, debt_collections, remarks } = req.body;
+  const result = db.query('INSERT INTO background_checks (customer_id, criminal_record, debt_collections, remarks) VALUES (?, ?, ?, ?) RETURNING *', customer_id, criminal_record, debt_collections, remarks);
   res.json(result[0]);
 });
 

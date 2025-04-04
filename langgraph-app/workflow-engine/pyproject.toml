@@ -41,7 +41,8 @@ packages = [
     "mcp_agent",
     "cv_analyzer",
     "service_now_mcp",
-    "credit_agents",]
+    "credit_agents",
+    "credit_agents_dynamic",]
 [tool.setuptools.package-dir]
 "langgraph.templates.react_agent" = "src/react_agent"
 "react_agent" = "src/react_agent"
@@ -54,6 +55,7 @@ packages = [
 "mcp_agent" = "src/mcp_agent"
 "service_now_mcp" = "src/service_now_mcp"
 "credit_agents" = "src/credit_agents"
+"credit_agents_dynamic" = "src/credit_agents_dynamic"
 
 
 [tool.setuptools.package-data]
