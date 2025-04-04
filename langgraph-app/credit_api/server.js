@@ -146,7 +146,10 @@ api.get('/manual-approval', (req, res) => {
 api.post('/manual-approval', (req, res) => {
   const { application_id, approver_name, approval_notes, approved } = req.body;
   const result = req.db.query('INSERT INTO manual_approvals (application_id, approver_name, approval_notes, approved) VALUES (?, ?, ?, ?) RETURNING *', application_id, approver_name, approval_notes, approved);
-  res.json(result[0]);
+  const approval = req.db.query('SELECT * FROM manual_approvals WHERE application_id = ? order by approval_date desc limit 1', application_id)[0];
+
+  if (approval) res.json(approval);
+  else res.status(404).json({ message: 'Manual Approval Not Found' });
 });
 
 // Final Decision APIs

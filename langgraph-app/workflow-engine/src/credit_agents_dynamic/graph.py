@@ -2,9 +2,9 @@ from typing import Literal
 from typing_extensions import TypedDict
 
 from langgraph.graph import MessagesState, END
-from langgraph.types import Command
+from langgraph.types import Command, interrupt
 from credit_agents_dynamic.utils import load_chat_model
-from credit_agents_dynamic.tools import check_credit_score, perform_background_check, verify_income, validate_kyc, make_final_decision
+from credit_agents_dynamic.tools import check_credit_score, manual_approval, perform_background_check, verify_income, validate_kyc, make_final_decision
 from credit_agents_dynamic.state import CreditState
 from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, START, END
@@ -23,8 +23,8 @@ system_prompt = (
     "task and respond with their results and status. When finished, "
     "respond with FINISH. If credit score is unknown next worker is credit_score_checker. "
     "If the credit score is more than 700 next worker is final_decision. "
+    "If the credit score is less than 600 next worker is background_checker. "
     "If the final_decision is Approved next worker is FINISH. "
-    "Otherwise route to background_checker."
 )
 
 
@@ -69,9 +69,32 @@ def background_checker_node(state: CreditState) -> Command[Literal["supervisor"]
                 HumanMessage(content=result["messages"][-1].content, name="background_checker")
             ]
         },
-        goto="supervisor",
+        goto="manual_approver",
     )
 
+manual_approval_agent = create_react_agent(
+    llm, 
+    tools=[manual_approval], 
+    prompt="You are a manual approver. You need to approve an application. Use the manual_approval tool with the application_id."
+)
+
+
+def manual_approver_node(state: CreditState) -> Command[Literal["supervisor"]]:
+     # Interrupt the user for manual approval
+    approved = interrupt("Approval the application now?")
+    label = "Approved" if approved else "Rejected"
+    message = [HumanMessage(content=f"The applicaiton is '{label}'", name="final_decision")]
+    state.messages = state.messages + message
+    result = manual_approval_agent.invoke({"messages": state.messages})
+    
+    return Command(
+        update={
+            "messages": state.messages + [
+                HumanMessage(content=result["messages"][-1].content, name="manual_approver")
+            ]
+        },
+        goto="supervisor",
+    )
 
 # NOTE: THIS PERFORMS ARBITRARY CODE EXECUTION, WHICH CAN BE UNSAFE WHEN NOT SANDBOXED
 credit_scrore_agent = create_react_agent(llm, 
@@ -99,7 +122,7 @@ final_decision_agent = create_react_agent(llm,
 
 def final_decision_node(state: CreditState) -> Command[Literal["supervisor"]]:
     result = final_decision_agent.invoke({"messages": state.messages})
-    
+
     return Command(
         update={
             "messages": state.messages + [
@@ -116,4 +139,5 @@ builder.add_node("supervisor", supervisor_node)
 builder.add_node("background_checker", background_checker_node)
 builder.add_node("final_decision", final_decision_node)
 builder.add_node("credit_score_checker", credit_score_node)
+builder.add_node("manual_approver", manual_approver_node)
 graph = builder.compile()
