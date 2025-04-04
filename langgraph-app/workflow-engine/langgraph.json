@@ -8,7 +8,8 @@
     "meta_prompter": "./src/meta_prompter/graph.py:graph",
     "cv_analyzer": "./src/cv_analyzer/graph.py:graph",
     "mcp_agent": "./src/mcp_agent/graph.py:make_graph",
-    "service_now_mcp": "./src/service_now_mcp/graph.py:make_graph"
+    "service_now_mcp": "./src/service_now_mcp/graph.py:make_graph",
+    "credit_agents": "./src/credit_agents/graph.py:graph"
   },
   "env": ".env"
 }

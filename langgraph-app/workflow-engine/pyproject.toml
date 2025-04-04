@@ -40,7 +40,8 @@ packages = [
     "meta_prompter",
     "mcp_agent",
     "cv_analyzer",
-    "service_now_mcp",]
+    "service_now_mcp",
+    "credit_agents",]
 [tool.setuptools.package-dir]
 "langgraph.templates.react_agent" = "src/react_agent"
 "react_agent" = "src/react_agent"
@@ -52,6 +53,7 @@ packages = [
 "cv_analyzer" = "src/cv_analyzer"
 "mcp_agent" = "src/mcp_agent"
 "service_now_mcp" = "src/service_now_mcp"
+"credit_agents" = "src/credit_agents"
 
 
 [tool.setuptools.package-data]
