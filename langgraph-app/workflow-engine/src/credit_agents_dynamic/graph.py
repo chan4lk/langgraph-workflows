@@ -10,7 +10,7 @@ from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import create_react_agent
 
-members = ["credit_score_checker", "background_checker", "final_decision"]
+members = ["credit_score_checker", "background_checker", "final_decision", "validate_kyc", "manual_approver"]
 # Our team supervisor is an LLM node. It just picks the next agent to process
 # and decides when the work is completed
 options = members + ["FINISH"]
@@ -24,6 +24,8 @@ system_prompt = (
     "respond with FINISH. If credit score is unknown next worker is credit_score_checker. "
     "If the credit score is more than 700 next worker is final_decision. "
     "If the credit score is less than 600 next worker is background_checker. "
+    "If the credit score is between 600 and 700 next worker is kyc_validator."
+    "If manual approval is completed next worker is final_decision."
     "If the final_decision is Approved next worker is FINISH. "
 )
 
@@ -71,6 +73,26 @@ def background_checker_node(state: CreditState) -> Command[Literal["supervisor"]
         },
         goto="manual_approver",
     )
+
+validate_kyc_agent = create_react_agent(
+    llm, 
+    tools=[validate_kyc], 
+    prompt="You are a KYC validator. use tools to validate customer"
+)
+
+
+def validate_kyc_node(state: CreditState) -> Command[Literal["supervisor"]]:
+    result = validate_kyc_agent.invoke({"messages": state.messages})
+    
+    return Command(
+        update={
+            "messages": state.messages + [
+                HumanMessage(content=result["messages"][-1].content, name="kyc_validator")
+            ]
+        },
+        goto="manual_approver",
+    )
+
 
 manual_approval_agent = create_react_agent(
     llm, 
@@ -140,4 +162,5 @@ builder.add_node("background_checker", background_checker_node)
 builder.add_node("final_decision", final_decision_node)
 builder.add_node("credit_score_checker", credit_score_node)
 builder.add_node("manual_approver", manual_approver_node)
+builder.add_node("validate_kyc", validate_kyc_node)
 graph = builder.compile()
