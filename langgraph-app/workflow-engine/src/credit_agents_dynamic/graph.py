@@ -23,6 +23,7 @@ system_prompt = (
     "task and respond with their results and status. When finished, "
     "respond with FINISH. If credit score is unknown next worker is credit_score_checker. "
     "If the credit score is more than 700 next worker is final_decision. "
+    "If the final_decision is Approved next worker is FINISH. "
     "Otherwise route to background_checker."
 )
 
@@ -40,22 +41,8 @@ def supervisor_node(state: CreditState) -> Command[Literal[*members, "__end__"]]
     base_messages = [
         {"role": "system", "content": system_prompt},
     ]
-    
-    # If there are no messages yet, add a default user message with application details
-    if not state.messages:
-        application_id = state.keys.get('application_id', 'unknown')
-        customer_id = state.keys.get('customer_id', 'unknown')
-        product_type = state.keys.get('product_type', 'unknown')
-        requested_amount = state.keys.get('requested_amount', 'unknown')
-        
-        default_message = {
-            "role": "user", 
-            "content": f"Process credit application with ID: {application_id} for customer: {customer_id}. " \
-                      f"Product type: {product_type}, requested amount: {requested_amount}."
-        }
-        messages = base_messages + [default_message]
-    else:
-        messages = base_messages + state.messages
+
+    messages = base_messages + state.messages
     
     response = llm.with_structured_output(Router).invoke(messages)
     goto = response["next"]
@@ -67,19 +54,14 @@ def supervisor_node(state: CreditState) -> Command[Literal[*members, "__end__"]]
 
 
 background_checker_agent = create_react_agent(
-    llm, tools=[perform_background_check], prompt="You are a background_checker. You should use tools to perform background checks."
+    llm, 
+    tools=[perform_background_check], 
+    prompt="You are a background checker. You need to perform a background check for a CUSTOMER_ID (not application_id). Use the perform_background_check tool with the customer_id."
 )
 
 
 def background_checker_node(state: CreditState) -> Command[Literal["supervisor"]]:
-    # Create a default message if none exists
-    if not state.messages:
-        state_with_message = {
-            "messages": [HumanMessage(content=f"Perform a background check for application ID: {state.keys.get('application_id', 'unknown')}")]
-        }
-        result = background_checker_agent.invoke(state_with_message)
-    else:
-        result = background_checker_agent.invoke({"messages": state.messages})
+    result = background_checker_agent.invoke({"messages": state.messages})
     
     return Command(
         update={
@@ -92,18 +74,14 @@ def background_checker_node(state: CreditState) -> Command[Literal["supervisor"]
 
 
 # NOTE: THIS PERFORMS ARBITRARY CODE EXECUTION, WHICH CAN BE UNSAFE WHEN NOT SANDBOXED
-credit_scrore_agent = create_react_agent(llm, tools=[check_credit_score])
+credit_scrore_agent = create_react_agent(llm, 
+ prompt="You are a credit score checker. You need to check the credit score for a CUSTOMER_ID (not application_id). Use the check_credit_score tool with the customer_id.",
+ tools=[check_credit_score])
 
 
 def credit_score_node(state: CreditState) -> Command[Literal["supervisor"]]:
-    # Create a default message if none exists
-    if not state.messages:
-        state_with_message = {
-            "messages": [HumanMessage(content=f"Check credit score for application ID: {state.keys.get('application_id', 'unknown')}")]
-        }
-        result = credit_scrore_agent.invoke(state_with_message)
-    else:
-        result = credit_scrore_agent.invoke({"messages": state.messages})
+   
+    result = credit_scrore_agent.invoke({"messages": state.messages})
     
     return Command(
         update={
@@ -114,18 +92,13 @@ def credit_score_node(state: CreditState) -> Command[Literal["supervisor"]]:
         goto="supervisor",
     )
 
-final_decision_agent = create_react_agent(llm, tools=[make_final_decision])
+final_decision_agent = create_react_agent(llm,
+ prompt="You are the decision maker. You must make a final decision with a reason such as 'Approved' or 'Rejected'. IMPORTANT: You must use the APPLICATION_ID (not customer_id) when calling the make_final_decision tool. The application_id will be provided in the message.",
+ tools=[make_final_decision])
 
 
 def final_decision_node(state: CreditState) -> Command[Literal["supervisor"]]:
-    # Create a default message if none exists
-    if not state.messages:
-        state_with_message = {
-            "messages": [HumanMessage(content=f"Final decision for application ID: {state.keys.get('application_id', 'unknown')}")]
-        }
-        result = final_decision_agent.invoke(state_with_message)
-    else:
-        result = final_decision_agent.invoke({"messages": state.messages})
+    result = final_decision_agent.invoke({"messages": state.messages})
     
     return Command(
         update={

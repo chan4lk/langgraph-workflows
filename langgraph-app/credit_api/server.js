@@ -163,7 +163,9 @@ api.post('/final-decision', (req, res) => {
   const result = req.db.query('INSERT INTO final_decisions (application_id, decision, reason) VALUES (?, ?, ?) RETURNING *', application_id, decision, reason);
 
   req.db.query('UPDATE credit_applications SET status = ? WHERE application_id = ?', decision, application_id);
-  res.json(result[0]);
+  updatedDecision = req.db.query('SELECT * FROM final_decisions WHERE application_id = ?', application_id)[0];
+  if (updatedDecision) res.json(updatedDecision);
+  else res.status(404).json({ message: 'Final Decision Not Found' });
 });
 
 

@@ -108,6 +108,11 @@ def manual_approval(application_id: str, approve: bool, notes: str) -> Dict[str,
 @tool
 def make_final_decision(application_id: str, decision: str, reason: str) -> Dict[str, Any]:
     """Make the final decision for a given application"""
+    """Parameters:
+    - application_id: str
+    - decision: str
+    - reason: str
+    """
     try:
         response = requests.post(
             f"{BASE_URL}/final-decision", 

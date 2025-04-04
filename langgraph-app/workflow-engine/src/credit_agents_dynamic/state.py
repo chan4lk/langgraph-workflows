@@ -31,6 +31,6 @@ class CreditKeys(TypedDict):
 
 @dataclass
 class CreditState:
-    keys: CreditKeys
+    # keys: CreditKeys
     next: str = "supervisor"
     messages: List[Union[HumanMessage, AIMessage]] = field(default_factory=list)
