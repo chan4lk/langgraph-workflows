@@ -20,69 +20,49 @@ def run_workflow(application_id, customer_id, product_type, amount, auto_approve
     
     # Run the workflow and track the steps
     print(f"\nStarting credit application workflow for {application_id} ({customer_id})...\n")
+    print(f"Initial request: Process credit application with ID: {application_id} for customer: {customer_id}")
+    print(f"Product type: {product_type}, requested amount: ${amount}")
+    print("\nWorkflow execution:")
     
     # Mock the interrupt response
     from unittest.mock import patch
     
-    # Create a list to store all messages from each step
-    all_messages = []
-    
     with patch('langgraph.types.interrupt', return_value=auto_approve):
         # Run the workflow
         for i, output in enumerate(graph.stream(initial_state)):
-            # Print step number
             print(f"Step {i+1}:")
             
-            # Check for new messages
-            if output.get('messages'):
-                # Get only new messages that weren't in previous steps
-                new_messages = output.get('messages')[len(all_messages):] if all_messages else output.get('messages')
-                all_messages = output.get('messages')
-                
-                # Print new messages
-                for msg in new_messages:
-                    if hasattr(msg, 'content'):
-                        name = getattr(msg, 'name', 'user' if hasattr(msg, 'type') and msg.type == 'human' else 'System')
-                        content = msg.content
-                        print(f"[{name}]: {content[:100]}..." if len(content) > 100 else f"[{name}]: {content}")
+            # For debugging, print the output keys
+            if i == 0:
+                print(f"Output keys: {list(output.keys()) if isinstance(output, dict) else 'Not a dict'}")
+            
+            # Just print the raw API responses that we can see
+            if 'Checking credit score' in str(output):
+                print("Credit score check executed")
+            if 'background check' in str(output).lower():
+                print("Background check executed")
+            if 'kyc' in str(output).lower():
+                print("KYC validation executed")
+            if 'manual approval' in str(output).lower():
+                print(f"Manual approval executed (Decision: {'Approved' if auto_approve else 'Rejected'})")
+            if 'final decision' in str(output).lower():
+                print("Final decision executed")
+            
             print("---")
     
     # Get the final state
     final_state = output
     
     # Print workflow summary
-    print(f"\nWorkflow Summary for {application_id}:")
+    print(f"\nSummary for {application_id}:")
+    print(f"Application ID: {application_id}")
+    print(f"Customer ID: {customer_id}")
+    print(f"Product type: {product_type}")
+    print(f"Amount requested: ${amount}")
+    print(f"Manual approval decision: {'Approved' if auto_approve else 'Rejected'}")
     
-    # Get the final state
-    final_state = output
-    
-    # Print all messages in the conversation
-    print("\nFull Conversation History:")
-    agent_sequence = []
-    
-    for i, msg in enumerate(final_state.get('messages', [])):
-        # Determine message name/sender
-        if hasattr(msg, 'name') and msg.name:
-            name = msg.name
-            # Track agent sequence
-            if name not in ['user', 'System'] and name not in agent_sequence:
-                agent_sequence.append(name)
-        elif hasattr(msg, 'type') and msg.type == 'human':
-            name = 'user'
-        else:
-            name = 'System'
-            
-        # Print message
-        if hasattr(msg, 'content'):
-            content = msg.content
-            print(f"[{i+1}] {name}: {content[:100]}..." if len(content) > 100 else f"[{i+1}] {name}: {content}")
-    
-    # Print agent sequence
-    if agent_sequence:
-        print("\nAgent execution sequence:")
-        print(" -> ".join(agent_sequence))
-    
-    return final_state
+    # Return the final state
+    return output
 
 def test_specific_credit_application():
     """Test processing a specific credit application with ID: APP001 for customer: CUST001"""
