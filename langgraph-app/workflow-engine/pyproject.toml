@@ -19,6 +19,7 @@ dependencies = [
     "PyPDF2>=3.0.0",
     "tavily-python>=0.4.0",
     "langchain-mcp-adapters>=0.0.5",
+    "langchain-ollama>=0.3.0",
 ]
 
 
@@ -41,6 +42,7 @@ packages = [
     "mcp_agent",
     "cv_analyzer",
     "service_now_mcp",
+    "service_now_sentiment",
     "credit_agents",
     "credit_agents_dynamic",]
 [tool.setuptools.package-dir]
@@ -56,6 +58,7 @@ packages = [
 "service_now_mcp" = "src/service_now_mcp"
 "credit_agents" = "src/credit_agents"
 "credit_agents_dynamic" = "src/credit_agents_dynamic"
+"service_now_sentiment" = "src/service_now_sentiment"
 
 
 [tool.setuptools.package-data]
