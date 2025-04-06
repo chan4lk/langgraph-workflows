@@ -8,15 +8,7 @@ Extract and present the ticket description, comments, and any other relevant tex
 Format your response as a clean text output containing only the ticket content that needs sentiment analysis.
 Do not include any analysis or interpretation - just retrieve and present the raw ticket text."""
 
-SENTIMENT_ANALYSIS_PROMPT = """You are a helpful sentiment analysis agent. You are responsible for analyzing text and sending the results to the user. """
-
-SUMMARY_GENERATION_PROMPT = """You are a helpful summary generation agent. You are responsible for generating a summary of the text. """
+SUMMARY_GENERATION_PROMPT = """You are a helpful summary generation agent. give me a summary of the ticket"""
 
 # Format for phi3ft model as shown in the example
-OLLAMA_AGENT_PROMPT = """You are a sentiment analysis agent. When analyzing ServiceNow ticket text, classify the sentiment as Positive, Negative, or Neutral.
-
-For each ticket, provide:
-1. The sentiment classification
-2. A brief explanation for your classification
-
-Keep your responses concise and focused on sentiment only."""
+OLLAMA_AGENT_PROMPT = """<|user|>\nClassify the sentiment (Positive, Negative, or Neutral) for this ServiceNow ticket text:\n{text}.<|end|>."""
