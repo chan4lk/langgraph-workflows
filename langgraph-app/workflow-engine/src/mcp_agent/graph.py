@@ -32,15 +32,10 @@ async def make_graph():
             "mcp/postgres", 
             "postgresql://elb:postgres@host.docker.internal:5432/elb"],
             "transport":"stdio"
-        },
-            "weather": {
-                # make sure you start your weather server on port 8000
-                "url": "http://localhost:8000/sse",
-                "transport": "sse",
-            }
+        }
         }
     ) as client:
-        agent = create_react_agent(model, client.get_tools())
+        agent = create_react_agent(model,prompt="Alway query the db schema first. then answer users query", tools=client.get_tools())
 
         sub_graph_workflow = StateGraph(InputState)
         sub_graph_workflow.add_node("executor", agent)
