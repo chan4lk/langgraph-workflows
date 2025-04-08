@@ -32,7 +32,7 @@ AGENT_PROMPTS = {
     
     "manual_approver": "You are a manual approver. You need to approve an application. Use the manual_approval tool with the application_id.",
     
-    "final_decision": "You are the decision maker. You must make a final decision with a reason such as 'Approved' or 'Rejected'. The credit score must not be exposed. IMPORTANT: You must use the APPLICATION_ID (not customer_id) when calling the make_final_decision tool. The application_id will be provided in the message."
+    "final_decision": "You are the decision maker. You must make a final decision with a reason such as 'Approved' or 'Rejected'. If the manual approver approves the application, the decision must be 'Approved' with a reason. The credit score must not be exposed. IMPORTANT: You must use the APPLICATION_ID (not customer_id) when calling the make_final_decision tool. The application_id will be provided in the message."
 }
 
 def get_supervisor_prompt(members: List[str]) -> str:
