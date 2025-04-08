@@ -45,7 +45,9 @@ packages = [
     "service_now_mcp",
     "service_now_sentiment",
     "credit_agents",
-    "credit_agents_dynamic",]
+    "credit_agents_dynamic",
+    "credit_agents_deterministic",]
+
     
 [tool.setuptools.package-dir]
 "langgraph.templates.react_agent" = "src/react_agent"
@@ -61,6 +63,7 @@ packages = [
 "credit_agents" = "src/credit_agents"
 "credit_agents_dynamic" = "src/credit_agents_dynamic"
 "service_now_sentiment" = "src/service_now_sentiment"
+"credit_agents_deterministic" = "src/credit_agents_deterministic"
 
 
 [tool.setuptools.package-data]

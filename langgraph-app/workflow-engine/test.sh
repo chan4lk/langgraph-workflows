@@ -10,4 +10,4 @@ fi
 
 # Run the test workflow
 echo "Running credit agents dynamic workflow test..."
-uv run src/credit_agents_dynamic/test_workflow.py
+uv run src/credit_agents_deterministic/test_workflow.py
