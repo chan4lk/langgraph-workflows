@@ -3,14 +3,12 @@ from credit_agents_dynamic.state import CreditState
 from langchain_core.messages import HumanMessage
 
 import dotenv
-
 dotenv.load_dotenv()
 
 def run_workflow(application_id, customer_id, product_type, amount, auto_approve=True):
     """Helper function to run the workflow with different parameters"""
     # Initialize the state
-    initial_state = CreditState()
-    
+    initial_state = CreditState() 
     # Add the initial message to the state
     initial_message = HumanMessage(
         content=f"Process credit application with ID: {application_id} for customer: {customer_id}. "
@@ -50,9 +48,6 @@ def run_workflow(application_id, customer_id, product_type, amount, auto_approve
             
             print("---")
     
-    # Get the final state
-    final_state = output
-    
     # Print workflow summary
     print(f"\nSummary for {application_id}:")
     print(f"Application ID: {application_id}")
@@ -77,10 +72,8 @@ def test_low_credit_score_application():
 def test_medium_credit_score_application():
     """Test processing an application with medium credit score and KYC issues (APP003)"""
     # This will test the path where credit score is medium and KYC validation is needed
-    # Auto-approve is set to False to test rejection in the manual approval step
+    # Auto-approve is set too False to test rejection in the manual approval step
     return run_workflow("APP003", "CUST003", "mortgage", 250000, auto_approve=False)
-    
-    return final_state
 
 def test_random_credit_application():
     """Test with random application and customer IDs"""
@@ -96,8 +89,8 @@ if __name__ == "__main__":
     print("\n===== TEST CASE 1: High Credit Score Application =====\n")
     test_specific_credit_application()
     
-    print("\n\n===== TEST CASE 2: Low Credit Score Application with Approval =====\n")
-    test_low_credit_score_application()
+    # print("\n\n===== TEST CASE 2: Low Credit Score Application with Approval =====\n")
+    # test_low_credit_score_application()
     
-    print("\n\n===== TEST CASE 3: Medium Credit Score Application with Rejection =====\n")
-    test_medium_credit_score_application()
+    # print("\n\n===== TEST CASE 3: Medium Credit Score Application with Rejection =====\n")
+    # test_medium_credit_score_application()

@@ -1,9 +1,9 @@
 [project]
-name = "react-agent"
+name = "langgraph-workflow-engine"
 version = "0.0.1"
 description = "Starter template for making a custom Reasoning and Action agent (using tool calling) in LangGraph."
 authors = [
-    { name = "William Fu-Hinthorn", email = "13333726+hinthornw@users.noreply.github.com" },
+    { name = "Chandima Ranaweera", email = "chan4lk@gmail.com" },
 ]
 readme = "README.md"
 license = { text = "MIT" }
@@ -20,6 +20,7 @@ dependencies = [
     "tavily-python>=0.4.0",
     "langchain-mcp-adapters>=0.0.5",
     "langchain-ollama>=0.3.0",
+    "pytest>=8.3.5",
 ]
 
 
@@ -45,6 +46,7 @@ packages = [
     "service_now_sentiment",
     "credit_agents",
     "credit_agents_dynamic",]
+    
 [tool.setuptools.package-dir]
 "langgraph.templates.react_agent" = "src/react_agent"
 "react_agent" = "src/react_agent"

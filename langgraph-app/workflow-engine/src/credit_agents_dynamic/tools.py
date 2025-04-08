@@ -14,7 +14,7 @@ AUTH_HEADERS = {"Authorization": f"Bearer {AUTH_TOKEN}"}
 def check_credit_score(customer_id: str) -> Dict[str, Any]:
     """Check the credit score for a given customer"""
     """ Parameters:
-    - customer_id: str"""
+    - customer_id: str""" 
 
     try:
         print("Checking credit score...\n")
@@ -35,6 +35,8 @@ def check_credit_score(customer_id: str) -> Dict[str, Any]:
 @tool
 def validate_kyc(customer_id: str) -> Dict[str, Any]:
     """Validate KYC for a given customer"""
+    """ Parameters:
+    - customer_id: str"""
     try:
         response = requests.get(
             f"{BASE_URL}/kyc-check", 
@@ -52,6 +54,8 @@ def validate_kyc(customer_id: str) -> Dict[str, Any]:
 @tool
 def verify_income(customer_id: str) -> Dict[str, Any]:
     """Verify income for a given customer"""
+    """ Parameters:
+    - customer_id: str"""
     try:
         response = requests.get(
             f"{BASE_URL}/income-verification", 
@@ -69,6 +73,8 @@ def verify_income(customer_id: str) -> Dict[str, Any]:
 @tool
 def perform_background_check(customer_id: str) -> Dict[str, Any]:
     """Perform background check for a given customer"""
+    """ Parameters:
+    - customer_id: str"""
     try:
         response = requests.get(
             f"{BASE_URL}/background-check", 
@@ -86,6 +92,10 @@ def perform_background_check(customer_id: str) -> Dict[str, Any]:
 @tool
 def manual_approval(application_id: str, approve: bool, notes: str) -> Dict[str, Any]:
     """Perform manual approval for a given application"""
+    """ Parameters:
+    - application_id: str
+    - approve: bool
+    - notes: str"""
     try:
         # Convert boolean to integer for SQLite compatibility
         approved_int = 1 if approve else 0
