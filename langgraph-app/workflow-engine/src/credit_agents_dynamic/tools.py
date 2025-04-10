@@ -1,10 +1,12 @@
 from langchain_core.tools import tool
 import requests
 from typing import Dict, List, Optional, Union, Any
+import os
 
 # API Tools for each agent
 #BASE_URL = "https://fabricate.mockaroo.com/api/v1/databases/credit_demo/api"
-BASE_URL = "http://localhost:3000"
+PORT = os.getenv("PORT", 3000) 
+BASE_URL = f"http://localhost:{PORT}"
 # Authentication token
 AUTH_TOKEN = "46ada160-f07b-4461-9f77-0eb36f383ded"
 AUTH_HEADERS = {"Authorization": f"Bearer {AUTH_TOKEN}"}
