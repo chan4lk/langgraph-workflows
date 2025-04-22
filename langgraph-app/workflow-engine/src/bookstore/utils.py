@@ -4,7 +4,6 @@ Utility functions for the bookstore workflow.
 
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
-from typing import Dict, Any, Optional
 
 def load_chat_model(model_name: str = "openai/gpt-4o-mini") -> BaseChatModel:
     """

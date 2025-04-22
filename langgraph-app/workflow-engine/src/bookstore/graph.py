@@ -3,9 +3,8 @@ from typing import Dict, Any, cast
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import MemorySaver
 # Import our modular components
-from bookstore.types import BookstoreState, BookstoreKeys
+from bookstore.types import BookstoreState 
 from bookstore.agents import book_info_provider, catalog_updater, supervisor
-from bookstore.messages import normalize_messages, create_messages
 
 # Create the workflow graph
 def create_bookstore_graph() -> StateGraph:
@@ -49,21 +48,11 @@ def process_request(user_request: str) -> Dict[str, Any]:
     
     # Create a human message from the user request
     human_message = HumanMessage(content=user_request)
-    messages = normalize_messages([human_message])
+    messages = [human_message]
     
     # Initialize the state
     initial_state = BookstoreState(
-        keys=cast(BookstoreKeys, {
-            "user_request": user_request,
-            "book_info": None,
-            "catalog_update_status": None,
-            "next_step": "",
-            "error": None,
-            "filter_tools": []
-        }),
-        user_request=user_request,
-        messages=messages,
-        all_messages=create_messages(messages, True)
+        messages=messages
     )
     
     # Run the workflow
