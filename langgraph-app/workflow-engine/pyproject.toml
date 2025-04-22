@@ -46,7 +46,8 @@ packages = [
     "service_now_sentiment",
     "credit_agents",
     "credit_agents_dynamic",
-    "credit_agents_deterministic",]
+    "credit_agents_deterministic",
+    "bookstore",]
 
     
 [tool.setuptools.package-dir]
@@ -64,6 +65,7 @@ packages = [
 "credit_agents_dynamic" = "src/credit_agents_dynamic"
 "service_now_sentiment" = "src/service_now_sentiment"
 "credit_agents_deterministic" = "src/credit_agents_deterministic"
+"bookstore" = "src/bookstore"
 
 
 [tool.setuptools.package-data]
