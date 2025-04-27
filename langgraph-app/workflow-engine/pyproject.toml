@@ -47,7 +47,8 @@ packages = [
     "credit_agents",
     "credit_agents_dynamic",
     "credit_agents_deterministic",
-    "bookstore",]
+    "bookstore",
+    "smart_goals",]
 
     
 [tool.setuptools.package-dir]
@@ -66,7 +67,7 @@ packages = [
 "service_now_sentiment" = "src/service_now_sentiment"
 "credit_agents_deterministic" = "src/credit_agents_deterministic"
 "bookstore" = "src/bookstore"
-
+"smart_goals" = "src/smart_goals"
 
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
