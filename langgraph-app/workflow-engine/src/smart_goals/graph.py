@@ -45,8 +45,12 @@ class SmartGoalsGraph():
         return Command(goto="analyze_user", update={"messages": state.messages + [message]})
         
 
-    def human_node(self, state: AgentState) -> Command[Literal["analyze_user"]]:
+    def human_node(self, state: AgentState) -> Command[Literal["analyze_user", END]]:
         response = interrupt({"message": "What is user role ?"}) 
+        role = response["role"]
+        if not role:
+            message = AIMessage(content="User not found")
+            return Command(goto=END, update={"messages": state.messages + [message]})
         message = HumanMessage(content="Users role is: " + response["role"])
         return Command(goto="analyze_user", update={"messages": state.messages + [message]}) 
 
