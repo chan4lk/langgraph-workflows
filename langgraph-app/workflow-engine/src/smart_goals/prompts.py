@@ -1,5 +1,7 @@
 GOAL_PROMPT = """
-Generate a SMART Goals document with the following structure:
+consider current date as {date}.
+
+Generate a SMART Goals for 6 months with the following structure:
 
 1. **Performance Goals**:  
 - List 4–6 specific, measurable, achievable, relevant, and time-bound goals related to the user's role and/or project.  

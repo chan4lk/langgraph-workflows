@@ -1,3 +1,4 @@
+from datetime import date
 from langgraph.graph import StateGraph, START, END, add_messages
 from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
@@ -21,7 +22,8 @@ class SmartGoalsGraph():
         self.workflow = StateGraph(AgentState)
 
     def create_analyze_user_agent(self):
-        agent = create_react_agent(model=llm, prompt=GOAL_PROMPT, tools=[])
+        prompt = GOAL_PROMPT.format(date=date.today())
+        agent = create_react_agent(model=llm, prompt=prompt, tools=[])
         return agent
 
     def create_user_details_agent(self):
@@ -36,6 +38,9 @@ class SmartGoalsGraph():
         return Command(goto=END, update={"messages": state.messages + [message]}) 
 
     def user_details_node(self, state: AgentState) -> Command[Literal["analyze_user", "human_node"]]:
+        if len(state.messages) > 1:
+            return Command(goto="analyze_user", update={"messages": state.messages})
+
         result = self.create_user_details_agent().invoke({"messages": state.messages})
         role = result["messages"][-1].content
         if role == "NOT_FOUND":
