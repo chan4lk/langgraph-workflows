@@ -6,14 +6,14 @@ from langgraph.types import Command, interrupt
 from typing import Annotated, TypedDict, List, Dict, Sequence, Literal
 from dataclasses import dataclass, field
 from smart_goals.tools import get_user_details_tool
+from smart_goals.prompts import GOAL_PROMPT, USER_DETAILS_PROMPT
 @dataclass
 class AgentState:
     messages: Annotated[Sequence[AnyMessage], add_messages] = field(
         default_factory=list
     )
 
-ANALYZE_USER_PROMPT = "Analyze the user's input and generate a list of 3 smart goals."
-USER_DETAILS_PROMPT = "Find user deatails based on the user's name using tools. if user is not found, say that they are not found. otherwise return the user's role."
+
 llm = ChatOpenAI(model="gpt-4o-mini")
 class SmartGoalsGraph():
     workflow: StateGraph
@@ -21,7 +21,7 @@ class SmartGoalsGraph():
         self.workflow = StateGraph(AgentState)
 
     def create_analyze_user_agent(self):
-        agent = create_react_agent(model=llm, prompt=ANALYZE_USER_PROMPT, tools=[])
+        agent = create_react_agent(model=llm, prompt=GOAL_PROMPT, tools=[])
         return agent
 
     def create_user_details_agent(self):
