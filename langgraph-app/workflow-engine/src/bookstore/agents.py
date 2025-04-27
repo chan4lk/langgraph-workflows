@@ -16,8 +16,6 @@ OPTIONS = MEMBERS + ["FINISH"]
 # Get the supervisor prompt
 SYSTEM_PROMPT = get_supervisor_prompt(MEMBERS)
 
-print(SYSTEM_PROMPT)
-
 # Load the language model
 LLM = load_chat_model("openai/gpt-4o-mini")
 
