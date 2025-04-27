@@ -21,12 +21,19 @@ def create_bookstore_graph() -> StateGraph:
     builder.add_node("book_info_provider", book_info_provider)
     builder.add_node("catalog_updater", catalog_updater)
     builder.add_node("supervisor", supervisor)
+    def await_user(state):
+        # Do not update messages or return a Command, just return the state as-is
+        return state
+    builder.add_node("await_user", await_user)
     
     # Set up the edges
     builder.add_edge(START, "supervisor")
     builder.add_edge("supervisor", END)
     builder.add_edge("book_info_provider", "supervisor")
     builder.add_edge("catalog_updater", "supervisor")
+    builder.add_edge("catalog_updater", "await_user")
+    builder.add_edge("await_user", "supervisor")
+    # Ensure only one outgoing edge from await_user
     
     # Compile the graph
     memory = MemorySaver()

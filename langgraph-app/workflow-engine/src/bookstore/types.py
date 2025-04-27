@@ -8,4 +8,3 @@ from langchain_core.messages import AnyMessage
 class BookstoreState:
     """State for the bookstore workflow."""
     messages: List[AnyMessage] = field(default_factory=list)
-    next_step: str = "supervisor"
