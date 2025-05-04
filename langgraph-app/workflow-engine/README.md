@@ -87,3 +87,36 @@ To develop and extend the workflow:
 2. Make changes to the workflow components
 3. Start the server to test your changes
 4. Use the API to interact with the workflow
+
+## API
+
+The API is available at http://localhost:2024
+
+### Endpoints
+
+- `/chat`: Chat endpoint
+
+### Request
+
+```json
+{
+    "thread_id": "test-thread",
+    "message": "Hello, world!"
+}
+```
+
+### Response
+
+```json
+{
+    "message": "Hello, world!"
+}
+```
+
+### Example
+
+```bash
+curl -N -X POST http://localhost:2024/chat \
+  -H "Content-Type: application/json" \
+  -d '{"thread_id": "test-thread", "message": "Hello, world!"}'
+```

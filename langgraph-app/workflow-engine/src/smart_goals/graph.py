@@ -66,8 +66,14 @@ class SmartGoalsGraph():
         self.workflow.set_entry_point("user_details")
         return self.workflow.compile()
 
-workflow = SmartGoalsGraph()
-graph = workflow.compile()
+
+
+def make_graph():
+    workflow = SmartGoalsGraph()
+    graph = workflow.compile()
+    return graph
+
+    
 
 # --- Example usage ---
 # graph.invoke({"input":{"messages":[]},"output":{"messages":[]},"agent":{"messages":[]},"messages":[]})

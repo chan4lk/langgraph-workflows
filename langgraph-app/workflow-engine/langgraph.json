@@ -14,7 +14,10 @@
     "service_now_sentiment": "./src/service_now_sentiment/graph.py:make_graph",
     "credit_agents_deterministic": "./src/credit_agents_deterministic/graph.py:graph",
     "bookstore": "./src/bookstore/graph.py:create_bookstore_graph",
-    "smart_goals": "./src/smart_goals/graph.py:graph"
+    "smart_goals": "./src/smart_goals/graph.py:make_graph"
   },
-  "env": ".env"
+  "env": ".env",
+  "http": {
+    "app": "./api/web.py:app"
+  }
 }

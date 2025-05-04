@@ -60,36 +60,40 @@ async def sentiment_analysis_node(state: InputState) -> InputState:
 
 @asynccontextmanager
 async def make_graph():
-    async with MultiServerMCPClient(
-        {
-            "servicenow": {
-                # make sure you start your weather server on port 8000
-                "url": "http://localhost:8090/sse",
-                "transport": "sse",
+    try:
+        async with MultiServerMCPClient(
+            {
+                "servicenow": {
+                    # make sure you start your weather server on port 8000
+                    "url": "http://localhost:8090/sse",
+                    "transport": "sse",
             }
-        }
-    ) as client:
-        # Create the ServiceNow agent with MCP tools
-        servicenow_agent = create_react_agent(model, prompt=SERVICE_NOW_SYSTEM_PROMPT, tools=client.get_tools())
+            }
+        ) as client:
+            # Create the ServiceNow agent with MCP tools
+            servicenow_agent = create_react_agent(model, prompt=SERVICE_NOW_SYSTEM_PROMPT, tools=client.get_tools())
+            
         
-       
 
-        # Set up the workflow
-        workflow = StateGraph(InputState)
-        
-        # Add nodes to the workflow
-        workflow.add_node("servicenow_agent", servicenow_agent)
-        workflow.add_node("sentiment_analysis_node", sentiment_analysis_node)
-        workflow.add_node("format_ollama_input_node", format_ollama_input_node)
+            # Set up the workflow
+            workflow = StateGraph(InputState)
+            
+            # Add nodes to the workflow
+            workflow.add_node("servicenow_agent", servicenow_agent)
+            workflow.add_node("sentiment_analysis_node", sentiment_analysis_node)
+            workflow.add_node("format_ollama_input_node", format_ollama_input_node)
 
-        # Create a sequential flow: START -> ServiceNow -> extract_last_message -> Ollama -> END
-        workflow.add_edge(START, "servicenow_agent")
-        
-        # Route from ServiceNow to extract_last_message, then to Ollama
-        workflow.add_edge("servicenow_agent", "format_ollama_input_node")
-        workflow.add_edge("format_ollama_input_node", "sentiment_analysis_node")
-        workflow.add_edge("sentiment_analysis_node", END)
+            # Create a sequential flow: START -> ServiceNow -> extract_last_message -> Ollama -> END
+            workflow.add_edge(START, "servicenow_agent")
+            
+            # Route from ServiceNow to extract_last_message, then to Ollama
+            workflow.add_edge("servicenow_agent", "format_ollama_input_node")
+            workflow.add_edge("format_ollama_input_node", "sentiment_analysis_node")
+            workflow.add_edge("sentiment_analysis_node", END)
 
-        graph = workflow.compile()
+            graph = workflow.compile()
 
-        yield graph
+            yield graph
+    except Exception as e:
+        print(e)
+        yield None
