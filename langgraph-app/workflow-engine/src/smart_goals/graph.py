@@ -8,6 +8,9 @@ from typing import Annotated, TypedDict, List, Dict, Sequence, Literal
 from dataclasses import dataclass, field
 from smart_goals.tools import get_user_details_tool
 from smart_goals.prompts import GOAL_PROMPT, USER_DETAILS_PROMPT
+from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.memory import MemorySaver
+
 @dataclass
 class AgentState:
     messages: Annotated[Sequence[AnyMessage], add_messages] = field(
@@ -60,11 +63,12 @@ class SmartGoalsGraph():
         return Command(goto="analyze_user", update={"messages": state.messages + [message]}) 
 
     def compile(self) -> StateGraph:
+        memory = MemorySaver()
         self.workflow.add_node("user_details", self.user_details_node)
         self.workflow.add_node("human_node", self.human_node)
         self.workflow.add_node("analyze_user", self.analyze_user_node)
         self.workflow.set_entry_point("user_details")
-        return self.workflow.compile()
+        return self.workflow.compile(checkpointer=memory)
 
 
 
