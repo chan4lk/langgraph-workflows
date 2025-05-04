@@ -34,7 +34,6 @@ def event_stream(graph, thread_id, message):
             if isinstance(content, list) and not content:
                 return
             if content:
-                print(f"content {content}")
                 yield content + "\n"
 
 @app.post("/chat")
