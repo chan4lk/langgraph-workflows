@@ -8,10 +8,16 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 from pprint import pprint
+from typing import Optional
+import json
 
+class InterruptItem(BaseModel):
+    approval: bool
+    role: str
 class Item(BaseModel):
-    thread_id: str
+    thread_id: str  
     message: str
+    interrupt: Optional[InterruptItem] = None
 
 app = FastAPI()
 
@@ -35,29 +41,44 @@ def is_current_conversation_interrupted(
         )
         return interrupt_exists
 
-def event_stream(graph, thread_id, message):
+
+def event_stream(graph, thread_id, message, approval, role):
     graph_config = RunnableConfig(configurable={"thread_id": thread_id})
     interrupt_exists = is_current_conversation_interrupted(graph, graph_config)
+    if interrupt_exists:
+        print("Interrupt exists")
+        pprint(graph.get_state(graph_config))
+        print("Interrupt exists")
+    else:
+        print("No interrupt")
+        pprint(graph.get_state(graph_config))
+
+
     stream_input = (
-                    Command(resume=True)
-                    if interrupt_exists
-                    else {"messages": [("user", message)]}
-                )
+        Command(resume={"role": role if approval else None})
+        if interrupt_exists
+        else {"messages": [("user", message)]}
+    )
     for s in graph.stream(
-            input=stream_input,
-            config=graph_config,
-            subgraphs=True,
-            stream_mode=["updates", "messages"],
-        ):
+        input=stream_input,
+        config=graph_config,
+        subgraphs=True,
+        stream_mode=["updates", "messages"],
+    ):
         if s[1] == "updates":
             interrupt_message = s[-1].get("__interrupt__", None)
             if interrupt_message:
-                yield interrupt_message[0].value
+                value = interrupt_message[0].value
+                if not isinstance(value, str):
+                    value = json.dumps(value)
+                yield value
         elif isinstance(s[-1][0], AIMessageChunk):
             content = s[-1][0].content
             if isinstance(content, list) and not content:
                 return
             if content:
+                if not isinstance(content, str):
+                    content = json.dumps(content)
                 yield content
 
 @app.post("/chat")
@@ -67,8 +88,10 @@ async def chat(request: Item):
     """
     thread_id = request.thread_id
     message = request.message
+    approval = request.interrupt.approval if request.interrupt else None
+    role = request.interrupt.role if request.interrupt else None
 
     graph = make_graph()
 
-    return StreamingResponse(event_stream(graph, thread_id, message), media_type="text/event-stream")
+    return StreamingResponse(event_stream(graph, thread_id, message, approval, role), media_type="text/event-stream")
 

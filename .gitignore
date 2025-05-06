@@ -196,3 +196,4 @@ yarn-error.log*
 # Project specific
 backend/data/
 .DS_Store
+checkpoints.sqlite*
