@@ -120,3 +120,17 @@ curl -N -X POST http://localhost:2024/chat \
   -H "Content-Type: application/json" \
   -d '{"thread_id": "test-thread", "message": "Hello, world!"}'
 ```
+
+#### Approve
+```bash
+curl -N -X POST http://localhost:2024/chat \
+  -H "Content-Type: application/json" \
+  -d '{"thread_id": "test-thread","interrupt": {"approval": true, "role": "Sales Manager"}, "message" :"Goals for adam"}'
+```
+
+#### Reject
+```bash
+curl -N -X POST http://localhost:2024/chat \
+  -H "Content-Type: application/json" \
+  -d '{"thread_id": "test-thread","interrupt": {"approval": false, "role": "Sales Manager"}, "message" :"Goals for adam"}'
+```

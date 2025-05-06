@@ -58,7 +58,7 @@ class SmartGoalsGraph():
         response = interrupt({"message": "What is user role ?"}) 
         role = response["role"]
         if not role:
-            message = AIMessage(content="User not found")
+            message = AIMessage(content="User not found. Stoping generating goals")
             return Command(goto=END, update={"messages": state.messages + [message]})
         message = HumanMessage(content="Users role is: " + response["role"])
         return Command(goto="analyze_user", update={"messages": state.messages + [message]}) 
