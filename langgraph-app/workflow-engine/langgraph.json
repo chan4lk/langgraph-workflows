@@ -7,11 +7,8 @@
     "swot_analyzer": "./src/swot_analyzer/swot_agent.py:graph",
     "meta_prompter": "./src/meta_prompter/graph.py:graph",
     "cv_analyzer": "./src/cv_analyzer/graph.py:graph",
-    "mcp_agent": "./src/mcp_agent/graph.py:make_graph",
-    "service_now_mcp": "./src/service_now_mcp/graph.py:make_graph",
     "credit_agents": "./src/credit_agents/graph.py:graph",
     "credit_agents_dynamic": "./src/credit_agents_dynamic/graph.py:graph",
-    "service_now_sentiment": "./src/service_now_sentiment/graph.py:make_graph",
     "credit_agents_deterministic": "./src/credit_agents_deterministic/graph.py:graph",
     "bookstore": "./src/bookstore/graph.py:create_bookstore_graph",
     "smart_goals": "./src/smart_goals/graph.py:make_graph"
