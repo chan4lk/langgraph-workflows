@@ -1,15 +1,14 @@
 from datetime import date
-from langgraph.graph import StateGraph, START, END, add_messages
+from langgraph.graph import StateGraph, END, add_messages
 from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage, AnyMessage
 from langgraph.types import Command, interrupt
-from typing import Annotated, TypedDict, List, Dict, Sequence, Literal
+from typing import Annotated, Sequence, Literal
 from dataclasses import dataclass, field
 from smart_goals.tools import get_user_details_tool
 from smart_goals.prompts import GOAL_PROMPT, USER_DETAILS_PROMPT
 from langgraph.checkpoint.sqlite import SqliteSaver
-from langgraph.checkpoint.memory import MemorySaver
 import sqlite3
 
 @dataclass
@@ -42,13 +41,14 @@ class SmartGoalsGraph():
         return Command(goto=END, update={"messages": state.messages + [message]}) 
 
     def user_details_node(self, state: AgentState) -> Command[Literal["analyze_user", "human_node"]]:
-        if len(state.messages) > 1:
-            return Command(goto="analyze_user", update={"messages": state.messages})
+        # if len(state.messages) > 1:
+        #     return Command(goto="analyze_user", update={"messages": state.messages})
 
         result = self.create_user_details_agent().invoke({"messages": state.messages})
         role = result["messages"][-1].content
         if role == "NOT_FOUND":
             message = AIMessage(content="User not found")
+            
             return Command(goto="human_node", update={"messages": state.messages + [message]})
         message = AIMessage(content="Users role is: " + role)
         return Command(goto="analyze_user", update={"messages": state.messages + [message]})
@@ -58,8 +58,9 @@ class SmartGoalsGraph():
         response = interrupt({"message": "What is user role ?"}) 
         role = response["role"]
         if not role:
-            message = AIMessage(content="User not found. Stoping generating goals")
-            return Command(goto=END, update={"messages": state.messages + [message]})
+            aimssage = AIMessage(content="What is user role ?")
+            message = HumanMessage(content="User not found. Stoping generating goals")
+            return Command(goto=END, update={"messages": state.messages +[aimssage] + [message]})
         message = HumanMessage(content="Users role is: " + response["role"])
         return Command(goto="analyze_user", update={"messages": state.messages + [message]}) 
 
@@ -71,8 +72,6 @@ class SmartGoalsGraph():
         self.workflow.add_node("analyze_user", self.analyze_user_node)
         self.workflow.set_entry_point("user_details")
         return self.workflow.compile(checkpointer=memory)
-
-
 
 def make_graph():
     workflow = SmartGoalsGraph()

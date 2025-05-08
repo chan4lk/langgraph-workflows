@@ -45,13 +45,18 @@ def is_current_conversation_interrupted(
 def event_stream(graph, thread_id, message, approval, role):
     graph_config = RunnableConfig(configurable={"thread_id": thread_id})
     interrupt_exists = is_current_conversation_interrupted(graph, graph_config)
+    state = graph.get_state(graph_config)
     if interrupt_exists:
         print("Interrupt exists")
-        pprint(graph.get_state(graph_config))
+        pprint({'next': state.next})
+        print("State")
+        pprint(state)
         print("Interrupt exists")
     else:
         print("No interrupt")
-        pprint(graph.get_state(graph_config))
+        pprint({'next': state.next})
+        print("State")
+        pprint(state)
 
 
     stream_input = (
