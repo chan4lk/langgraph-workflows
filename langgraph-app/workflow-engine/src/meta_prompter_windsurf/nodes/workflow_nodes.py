@@ -137,7 +137,7 @@ def generate_ui_prompts(state: AgentState) -> AgentState:
     # Run the chain
     result = chain.invoke({
         "messages": normalized_messages,
-        "ui_flows": state.ui_flows
+        "requirements": state.app_requirements
     })
     
     # Parse the result
