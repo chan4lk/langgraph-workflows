@@ -50,7 +50,9 @@ packages = [
     "credit_agents_dynamic",
     "credit_agents_deterministic",
     "bookstore",
-    "smart_goals",]
+    "smart_goals",
+    "meta_prompter_windsurf",
+]
 
     
 [tool.setuptools.package-dir]
@@ -70,6 +72,7 @@ packages = [
 "credit_agents_deterministic" = "src/credit_agents_deterministic"
 "bookstore" = "src/bookstore"
 "smart_goals" = "src/smart_goals"
+"meta_prompter_windsurf" = "src/meta_prompter_windsurf"
 
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
