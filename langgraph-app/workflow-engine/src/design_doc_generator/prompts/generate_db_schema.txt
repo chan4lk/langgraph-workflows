@@ -1,4 +1,5 @@
-Using the following design summary, generate SQL DDL statements to create the primary relational database schema.
+Using the following design summary, generate the primary relational database schema. Use PostgreSQL as the database. The schema should be documented in tabular format. List the tables and their relationships. Include the primary and foreign keys.
+Also include the indexes and constraints. The schema should be self-explanatory and easy to understand.
 
 Design Summary:
 {topic}
