@@ -1,4 +1,5 @@
-Based on the following system design summary, generate a data flow diagram in Mermaid syntax. Use 'graph TD' direction.
+Based on the following system design summary, generate a data flow diagram in Mermaid syntax. Keep the node names as simple as possible to avoid syntax errors. Use 'graph TD' direction.
+
 
 Design Summary:
 {topic}
