@@ -12,7 +12,8 @@
     "credit_agents_deterministic": "./src/credit_agents_deterministic/graph.py:graph",
     "bookstore": "./src/bookstore/graph.py:create_bookstore_graph",
     "smart_goals": "./src/smart_goals/graph.py:make_graph",
-    "meta_prompter_windsurf": "./src/meta_prompter_windsurf/graph.py:graph"
+    "meta_prompter_windsurf": "./src/meta_prompter_windsurf/graph.py:graph",
+    "design_doc_generator": "./src/design_doc_generator/graph.py:build_graph"
   },
   "env": ".env",
   "http": {

@@ -1,0 +1,4 @@
+Using the following design summary, generate SQL DDL statements to create the primary relational database schema.
+
+Design Summary:
+{topic}

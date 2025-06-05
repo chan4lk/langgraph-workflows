@@ -197,3 +197,4 @@ yarn-error.log*
 backend/data/
 .DS_Store
 checkpoints.sqlite*
+agent_output_design_docs/

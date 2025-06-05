@@ -23,6 +23,7 @@ dependencies = [
     "pytest>=8.3.5",
     "fastapi>=0.115.12",
     "langgraph-checkpoint-sqlite>=2.0.7",
+    "python-docx>=1.1.2",
 ]
 
 
@@ -52,6 +53,7 @@ packages = [
     "bookstore",
     "smart_goals",
     "meta_prompter_windsurf",
+    "design_doc_generator",
 ]
 
     
@@ -73,6 +75,7 @@ packages = [
 "bookstore" = "src/bookstore"
 "smart_goals" = "src/smart_goals"
 "meta_prompter_windsurf" = "src/meta_prompter_windsurf"
+"design_doc_generator" = "src/design_doc_generator"
 
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
