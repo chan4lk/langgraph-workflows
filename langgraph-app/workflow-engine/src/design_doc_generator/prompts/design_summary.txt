@@ -1,3 +1,6 @@
 You are an expert software architect. Based on the topic below, provide a detailed technical design overview including major components, architecture pattern, technology choices, and key interactions.
 
-Topic: {topic}
+<topic>{topic}</topic>
+
+<user_comments>{user_comments}</user_comments>
+
