@@ -5,7 +5,8 @@ from langchain.schema import BaseOutputParser
 from langchain.prompts import PromptTemplate
 from typing import Optional
 import os
-
+import sqlite3
+from langgraph.checkpoint.sqlite import SqliteSaver
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4)
 
 @dataclass
@@ -40,6 +41,8 @@ def generate_db_schema(state: DesignState):
     return {"db_schema": schema}
 
 def build_graph():
+    conn = sqlite3.connect("checkpoints.sqlite", check_same_thread=False)
+    memory = SqliteSaver(conn)
     graph = StateGraph(DesignState)
     graph.add_node("generate_summary", generate_summary)
     graph.add_node("generate_dfd", generate_dfd)
@@ -50,4 +53,4 @@ def build_graph():
     graph.add_edge("generate_dfd", "generate_db_schema")
     graph.add_edge("generate_db_schema", END)
 
-    return graph.compile()
+    return graph.compile(checkpointer=memory)
