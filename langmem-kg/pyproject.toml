@@ -1,0 +1,14 @@
+[project]
+name = "langmem-kg"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "langchain>=0.3.25",
+    "langchain-community>=0.3.25",
+    "langchain-memgraph>=0.1.5",
+    "langgraph>=0.4.8",
+    "langmem>=0.0.27",
+    "openai>=1.86.0",
+]
