@@ -27,6 +27,7 @@ dependencies = [
     "markdown-it-py>=3.0.0",
     "langmem>=0.0.27",
     "pytest-asyncio>=1.0.0",
+    "graphiti-core>=0.12.4",
 ]
 
 
@@ -58,6 +59,7 @@ packages = [
     "meta_prompter_windsurf",
     "design_doc_generator",
     "self_learning",
+    "self_learning_graphiti",
 ]
 
     
@@ -81,6 +83,7 @@ packages = [
 "meta_prompter_windsurf" = "src/meta_prompter_windsurf"
 "design_doc_generator" = "src/design_doc_generator"
 "self_learning" = "src/self_learning"
+"self_learning_graphiti" = "src/self_learning_graphiti"
 
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
