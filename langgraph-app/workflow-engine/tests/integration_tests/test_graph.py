@@ -56,9 +56,12 @@ async def test_self_learning_graphiti_agent_simple_passthrough() -> None:
 @unit
 async def test_self_learning_summary_agent_simple_passthrough() -> None:
     res = await self_learning_summary_graph.ainvoke(
-        {"messages": [("user", "I have the order 1245 is pending status"),("user", "What is the status of my order?")]},
+        {"messages": [
+            ("user", "Assume order 134 is shipped, tracking number 123456, estimated delivery July 1"),
+            ("user", "What is the status of my order 134?")
+        ]},
         {"configurable": {"user_id": "chandima"}}
     )
 
-    assert "order" in str(res["messages"][-1].content).lower()
+    assert "123" in str(res['rules_response'].content).lower()
 
