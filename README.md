@@ -62,6 +62,11 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8001
 ```
 
+4. Run the tests
+```bash
+uv run pytest tests/integration_tests/test_graph.py::test_self_learning_graphiti_agent_simple_passthrough -v
+```
+
 ## License
 
 MIT License

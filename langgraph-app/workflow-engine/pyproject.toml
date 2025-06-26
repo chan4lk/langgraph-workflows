@@ -60,6 +60,8 @@ packages = [
     "design_doc_generator",
     "self_learning",
     "self_learning_graphiti",
+    "self_learning_rules",
+    "self_learning_summary",
 ]
 
     
@@ -84,6 +86,8 @@ packages = [
 "design_doc_generator" = "src/design_doc_generator"
 "self_learning" = "src/self_learning"
 "self_learning_graphiti" = "src/self_learning_graphiti"
+"self_learning_rules" = "src/self_learning_rules"
+"self_learning_summary" = "src/self_learning_summary"
 
 [tool.setuptools.package-data]
 "*" = ["py.typed"]

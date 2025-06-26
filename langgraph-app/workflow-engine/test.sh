@@ -10,4 +10,4 @@ fi
 
 # Run the test workflow
 echo "Running credit agents dynamic workflow test..."
-uv run src/credit_agents_deterministic/test_workflow.py
+uv run pytest tests/integration_tests/test_graph.py::test_self_learning_summary_agent_simple_passthrough -v

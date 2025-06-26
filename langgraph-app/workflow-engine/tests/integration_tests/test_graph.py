@@ -4,9 +4,10 @@ from langsmith import unit
 from react_agent.graph import graph
 from self_learning.graph import graph as self_learning_graph
 from self_learning_graphiti.graph import get_initialized_graph 
-from dotenv import load_dotenv
+from self_learning_summary.graph import graph as self_learning_summary_graph 
+import dotenv
 
-load_dotenv()
+dotenv.load_dotenv()
 
 
 @pytest.mark.asyncio
@@ -50,3 +51,14 @@ async def test_self_learning_graphiti_agent_simple_passthrough() -> None:
     # Check if the response contains 'order' (case-insensitive)
     assert "order" in last_message, f"Expected 'order' in response, got: {last_message}"
         
+
+@pytest.mark.asyncio
+@unit
+async def test_self_learning_summary_agent_simple_passthrough() -> None:
+    res = await self_learning_summary_graph.ainvoke(
+        {"messages": [("user", "I have the order 1245 is pending status"),("user", "What is the status of my order?")]},
+        {"configurable": {"user_id": "chandima"}}
+    )
+
+    assert "order" in str(res["messages"][-1].content).lower()
+
