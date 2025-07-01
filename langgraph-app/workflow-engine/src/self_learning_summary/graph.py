@@ -67,11 +67,9 @@ class State:
 
 langmem_agent = create_react_agent(
     "openai:gpt-4o-mini",
-    prompt="You are a helpful AI assistant. Answer questions based on the provided context and tools. If you don't know the answer, say 'I don't know'.",
-    tools=[
-        manager.as_tool(RuleTriple),
-    ],
+    prompt="You are a helpful AI assistant.",
     store=store,
+    tools=[]
 )
 # LLM for rules and summary nodes
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
