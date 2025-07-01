@@ -133,11 +133,12 @@ Question: {question}"""
     })
     
     # Save the current interaction to memory
+    assistant_response = response.get("messages", [])[-1]
     manager.invoke({
         "messages": [
             {"role": "system", "content": "Remember this interaction for future reference."},
             {"role": "user", "content": question},
-            {"role": "assistant", "content": response.content if hasattr(response, 'content') else str(response)}
+            {"role": "assistant", "content": assistant_response.content if hasattr(assistant_response, 'content') else ''}
         ]
     })
     
