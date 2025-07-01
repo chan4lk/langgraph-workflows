@@ -1,6 +1,6 @@
 from typing import Annotated, Sequence, List, Dict, Any
 from typing_extensions import TypedDict
-from langgraph.graph import Graph, StateGraph, END
+from langgraph.graph import StateGraph, END
 from langchain_core.messages import BaseMessage
 
 from cv_analyzer.agents import (
@@ -24,7 +24,7 @@ class CVScreeningState(TypedDict, total=False):
     output: str
     should_continue: bool
 
-def create_cv_screening_graph() -> Graph:
+def create_cv_screening_graph() -> StateGraph:
     # Initialize agents
     cv_reader = CVReaderAgent()
     job_analyzer = JobDescriptionAnalyzerAgent()

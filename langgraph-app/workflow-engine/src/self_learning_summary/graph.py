@@ -7,8 +7,9 @@ from typing import Sequence
 from dataclasses import dataclass, field
 from langgraph.graph import add_messages
 from typing_extensions import Annotated
-from langmem import create_memory_manager
+from langmem import create_memory_manager, create_search_memory_tool
 from pydantic import BaseModel
+from langchain_core.runnables import RunnableConfig
 
 rules = [
     "Every order is assigned a unique order number.",
@@ -71,6 +72,8 @@ langmem_agent = create_react_agent(
     store=store,
 )
 
+search_tool = create_search_memory_tool(store=store, namespace="self_learning_summary")
+
 # LLM for rules and summary nodes
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
@@ -97,15 +100,48 @@ def summary_node(state: State):
     return { "summary_response": response }
 
 # Node: LangMem agent
-def langmem_node(state: State):
+def langmem_node(state: State, config: RunnableConfig):
+    # Get the latest message and context
     question = state.messages[-1].content
-    context= state.messages[-2].content
-    # The agent expects a message history
-    prompt = (
-        f"\n\n{context}\n\nQuestion: {question}"
+    context = state.messages[-2].content
+    
+    # Retrieve relevant memories
+    memories = search_tool.invoke(
+        input={"query": question},
+        config=config,
     )
-    response = langmem_agent.invoke({"messages": [HumanMessage(content=prompt)]})
-    return { "langmem_response": response }
+    memory_context = "\n".join([m.content for m in memories if hasattr(m, 'content')])
+    
+    # Prepare the full context with memories
+    full_context = f"""Previous conversation context:
+{context}
+
+Relevant rules and knowledge:
+{memory_context}
+
+Question: {question}"""
+    
+    # Invoke the agent with the full context and conversation history
+    response = langmem_agent.invoke({
+        "messages": [
+            *[
+                {"role": "user" if i % 2 == 0 else "assistant", "content": msg.content}
+                for i, msg in enumerate(state.messages[:-1])  # All messages except the last one
+            ],
+            {"role": "user", "content": full_context}
+        ]
+    })
+    
+    # Save the current interaction to memory
+    manager.invoke({
+        "messages": [
+            {"role": "system", "content": "Remember this interaction for future reference."},
+            {"role": "user", "content": question},
+            {"role": "assistant", "content": response.content if hasattr(response, 'content') else str(response)}
+        ]
+    })
+    
+    return {"langmem_response": response}
 
 # Build the workflow
 workflow = StateGraph(State)

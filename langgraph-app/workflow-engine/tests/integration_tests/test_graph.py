@@ -65,3 +65,8 @@ async def test_self_learning_summary_agent_simple_passthrough() -> None:
 
     assert "123" in str(res['rules_response'].content).lower()
 
+
+        
+
+
+
