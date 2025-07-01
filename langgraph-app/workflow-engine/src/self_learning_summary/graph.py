@@ -110,7 +110,6 @@ def langmem_node(state: State):
         query=question,
         config=config,
     )
-    print("memories", memories)
     memory_context = "\n".join([m.value.subject + " " + m.value.predicate + " " + m.value.object for m in memories if hasattr(m, 'value')])
     
     # Prepare the full context with memories
