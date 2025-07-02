@@ -10,4 +10,4 @@ fi
 
 # Run the test workflow
 echo "Running credit agents dynamic workflow test..."
-uv run pytest tests/integration_tests/test_graph.py::test_self_learning_summary_with_custom_rules -v
+uv run pytest tests/evaluators/test_langsmith_evaluators.py::test_self_learning_summary_agent_evaluation -v
