@@ -1,8 +1,7 @@
-from langgraph.prebuilt import create_react_agent
 from langgraph.store.memory import InMemoryStore
 from langgraph.graph import StateGraph, START, END
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, AnyMessage
+from langchain_core.messages import HumanMessage, AnyMessage, SystemMessage
 from typing import Sequence
 from dataclasses import dataclass, field
 from langgraph.graph import add_messages
@@ -17,6 +16,21 @@ import os
 import asyncio
 
 zep = AsyncZep(api_key=os.environ.get('ZEP_API_KEY'))
+
+def _format_prompt(context: str, knowledge_base_content: str, question: str) -> str:
+    """
+    Formats a prompt string for the LLM, ensuring consistency across different nodes.
+    """
+    return f"""You are a helpful AI assistant. Use the provided "Knowledge Base" to answer the "Question".
+If the "Knowledge Base" does not contain enough information, state that you cannot answer based on the provided information.
+
+Previous conversation context:
+{context}
+
+Knowledge Base:
+{knowledge_base_content}
+
+Question: {question}"""
 
 rules = [
     "Every order is assigned a unique order number.",
@@ -71,17 +85,61 @@ class State:
     summary_response: AnyMessage | None = None
     langmem_response: AnyMessage | None = None
     zep_response: AnyMessage | None = None
+    current_rules: list[str] = field(default_factory=list)
+    current_summary: str = ""
 
-
-langmem_agent = create_react_agent(
-    "openai:gpt-4o-mini",
-    prompt="You are a helpful AI assistant.",
-    store=store,
-    tools=[]
-)
 # LLM for rules and summary nodes
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
+async def _invoke_llm(state: State, knowledge_base_content: str) -> AnyMessage:
+    question = state.messages[-1].content
+    context = state.messages[-2].content
+    prompt = _format_prompt(
+        context=context,
+        knowledge_base_content=knowledge_base_content,
+        question=question
+    )
+    return await llm.ainvoke([HumanMessage(content=prompt)])
+
+# Node: Full rules
+async def rules_node(state: State):
+    return { "rules_response": await _invoke_llm(state, "\n".join(state.current_rules or rules)) }
+
+# Node: Summary
+async def summary_node(state: State):
+    return { "summary_response": await _invoke_llm(state, state.current_summary or summary) }
+
+# Node: LangMem agent
+async def langmem_node(state: State):
+    memories = manager.search(
+        query=state.messages[-1].content,
+        config=config,
+    )
+    memory_context = "\n".join([m.value.subject + " " + m.value.predicate + " " + m.value.object for m in memories if hasattr(m, 'value')])
+    return { "langmem_response": await _invoke_llm(state, memory_context) }
+
+# Node: Zep Agent
+async def zep_node(state: State):
+    memories = await search_facts(zep_user_id, state.messages[-1].content, 10)
+    memory_context = "\n".join(memories)
+    return { "zep_response": await _invoke_llm(state, memory_context) }
+
+# Build the workflow
+workflow = StateGraph(State)
+workflow.add_node("rules", rules_node)
+workflow.add_node("summary", summary_node)
+workflow.add_node("langmem", langmem_node)
+workflow.add_node("zep", zep_node)  
+
+workflow.add_edge(START, "rules")
+workflow.add_edge("rules", "summary")
+workflow.add_edge("summary", "langmem")
+workflow.add_edge("langmem", "zep")
+workflow.add_edge("zep", END)
+
+graph = workflow.compile()
+
+zep_user_id = "zep_9d5d9e29f1422101f16b0d88747a50fea605009046867164a34b4189e6ec8bed"
 
 async def search_facts(user_name: str, query: str, limit: int = 5) -> list[str]:
     """Search for facts in all conversations had with a user.
@@ -116,110 +174,3 @@ async def search_nodes(user_name: str, query: str, limit: int = 5) -> list[str]:
         user_id=user_name, query=query, limit=limit
     )
     return [node.summary for node in nodes.edges]
-
-zep_user_id = "zep_9d5d9e29f1422101f16b0d88747a50fea605009046867164a34b4189e6ec8bed"
-
-# Node: Full rules
-async def rules_node(state: State):
-    question = state.messages[-1].content
-    context= state.messages[-2].content
-    prompt = (
-        "Rules:\n" + "\n".join(rules) +
-        f"\n\n{context}\n\nQuestion: {question}"
-    )
-    response = await llm.ainvoke([HumanMessage(content=prompt)])
-    return { "rules_response": response }
-
-# Node: Summary
-async def summary_node(state: State):
-    question = state.messages[-1].content
-    context= state.messages[-2].content
-    prompt = (
-        "Summary:\n" + summary +
-        f"\n\n{context}\n\nQuestion: {question}"
-    )
-    response = await llm.ainvoke([HumanMessage(content=prompt)])
-    return { "summary_response": response }
-
-# Node: LangMem agent
-async def langmem_node(state: State):
-    # Get the latest message and context
-    question = state.messages[-1].content
-    context = state.messages[-2].content
-
-    
-    # Retrieve relevant memories
-    memories = manager.search(
-        query=question,
-        config=config,
-    )
-    memory_context = "\n".join([m.value.subject + " " + m.value.predicate + " " + m.value.object for m in memories if hasattr(m, 'value')])
-    
-    # Prepare the full context with memories
-    full_context = f"""Previous conversation context:
-{context}
-
-Relevant rules and knowledge:
-{memory_context}
-
-Question: {question}"""
-    
-    # Invoke the agent with the full context and conversation history
-    response = await langmem_agent.ainvoke({
-        "messages": [
-            {"role": "user", "content": full_context}
-        ]
-    })
-    
-    return {"langmem_response": response}
-
-# Node: Zep Agent
-async def zep_node(state: State):
-    # Get the latest message and context
-    question = state.messages[-1].content
-    context = state.messages[-2].content
-
-    user_id = await zep.memory.add(
-        session_id="user123",
-        messages=rules_as_messages,
-    )
-
-    print("User ID:", user_id)
-    
-    # Retrieve relevant memories
-    memories = await search_facts(zep_user_id, question, 10)
-    memory_context = "\n".join(memories)
-    
-    # Prepare the full context with memories
-    full_context = f"""Previous conversation context:
-{context}
-
-Relevant rules and knowledge:
-{memory_context}
-
-Question: {question}"""
-    
-    # Invoke the agent with the full context and conversation history
-    response = await langmem_agent.ainvoke({
-        "messages": [
-            {"role": "user", "content": full_context}
-        ]
-    })
-    
-    return {"zep_response": response}
-
-
-# Build the workflow
-workflow = StateGraph(State)
-workflow.add_node("rules", rules_node)
-workflow.add_node("summary", summary_node)
-workflow.add_node("langmem", langmem_node)
-workflow.add_node("zep", zep_node)  
-
-workflow.add_edge(START, "rules")
-workflow.add_edge("rules", "summary")
-workflow.add_edge("summary", "langmem")
-workflow.add_edge("langmem", "zep")
-workflow.add_edge("zep", END)
-
-graph = workflow.compile()

@@ -68,7 +68,40 @@ async def test_self_learning_summary_agent_simple_passthrough() -> None:
     assert "123456" in str(res['rules_response'].content).lower()
 
 
-        
+@pytest.mark.asyncio
+@unit
+async def test_self_learning_summary_with_custom_rules() -> None:
+    custom_rules = [
+        "Order status inquiries require an order number.",
+        "For shipped orders, provide tracking and estimated delivery.",
+        "For delayed orders, provide reason and new estimated delivery."
+    ]
+    custom_summary = "Customers can inquire about order status; provide details based on order state."
 
+    res = await self_learning_summary_graph.ainvoke(
+        {
+            "messages": [
+                ("user", "Assume order 789 is delayed due to weather, new estimated delivery August 10"),
+                ("user", "What is the status of my order 789?")
+            ]
+        },
+        {
+            "configurable": {
+                "user_id": "test_user_custom_rules",
+                "current_rules": custom_rules,
+                "current_summary": custom_summary
+            }
+        }
+    )
 
+    # Verify that the responses contain expected information based on the custom rules/summary
+    assert "delayed" in str(res['rules_response'].content).lower()
+    assert "august 10" in str(res['rules_response'].content).lower()
+    
+    assert "order status" in str(res['summary_response'].content).lower()
+    assert "details based on order state" in str(res['summary_response'].content).lower()
 
+    # LangMem and Zep responses should also reflect the context, but their content might vary more
+    # We'll check for general relevance rather than specific phrases from custom_rules/summary
+    assert "delayed" in str(res['langmem_response'].content).lower() or "august 10" in str(res['langmem_response'].content).lower()
+    assert "delayed" in str(res['zep_response'].content).lower() or "august 10" in str(res['zep_response'].content).lower()
