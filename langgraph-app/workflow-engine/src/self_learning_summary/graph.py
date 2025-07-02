@@ -93,9 +93,10 @@ async def search_facts(user_name: str, query: str, limit: int = 5) -> list[str]:
     Returns:
         list: A list of facts that match the search query.
     """
-    edges = await zep.graph.search(
+    results = await zep.graph.search(
         user_id=user_name, query=query, limit=limit
     )
+    edges = results.edges
     return [edge.fact for edge in edges]
 
 
@@ -113,13 +114,14 @@ async def search_nodes(user_name: str, query: str, limit: int = 5) -> list[str]:
     nodes = await zep.graph.search(
         user_id=user_name, query=query, limit=limit
     )
-    return [node.summary for node in nodes]
+    return [node.summary for node in nodes.edges]
 
-asyncio.run(zep.memory.add(
-        session_id="user123",
-        messages=rules_as_messages,
-    ))
+# asyncio.run(zep.memory.add(
+#         session_id="user123",
+#         messages=rules_as_messages,
+#     ))
 
+zep_user_id = "zep_9d5d9e29f1422101f16b0d88747a50fea605009046867164a34b4189e6ec8bed"
 
 # Node: Full rules
 async def rules_node(state: State):
@@ -183,7 +185,7 @@ async def zep_node(state: State):
 
     
     # Retrieve relevant memories
-    memories = await search_facts("user123", question, 10)
+    memories = await search_facts(zep_user_id, question, 10)
     memory_context = "\n".join(memories)
     
     # Prepare the full context with memories
@@ -210,11 +212,12 @@ workflow = StateGraph(State)
 workflow.add_node("rules", rules_node)
 workflow.add_node("summary", summary_node)
 workflow.add_node("langmem", langmem_node)
-# workflow.add_node("zep", zep_node)  
+workflow.add_node("zep", zep_node)  
 
 workflow.add_edge(START, "rules")
 workflow.add_edge("rules", "summary")
 workflow.add_edge("summary", "langmem")
-workflow.add_edge("langmem", END)
+workflow.add_edge("langmem", "zep")
+workflow.add_edge("zep", END)
 
 graph = workflow.compile()
