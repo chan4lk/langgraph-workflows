@@ -70,6 +70,7 @@ class State:
     rules_response: AnyMessage | None = None
     summary_response: AnyMessage | None = None
     langmem_response: AnyMessage | None = None
+    zep_response: AnyMessage | None = None
 
 
 langmem_agent = create_react_agent(
@@ -205,7 +206,7 @@ Question: {question}"""
         ]
     })
     
-    return {"langmem_response": response}
+    return {"zep_response": response}
 
 
 # Build the workflow
