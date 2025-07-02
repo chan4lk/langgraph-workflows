@@ -13,6 +13,9 @@ from langchain_core.runnables import RunnableConfig
 
 from zep_cloud.client import AsyncZep
 from zep_cloud import Message
+import os
+import asyncio
+
 zep = AsyncZep(api_key=os.environ.get('ZEP_API_KEY'))
 
 rules = [
@@ -91,7 +94,7 @@ async def search_facts(user_name: str, query: str, limit: int = 5) -> list[str]:
         list: A list of facts that match the search query.
     """
     edges = await zep.graph.search(
-        user_id=user_name, text=query, limit=limit, search_scope="edges"
+        user_id=user_name, query=query, limit=limit
     )
     return [edge.fact for edge in edges]
 
@@ -108,12 +111,12 @@ async def search_nodes(user_name: str, query: str, limit: int = 5) -> list[str]:
         list: A list of node summaries for nodes that match the search query.
     """
     nodes = await zep.graph.search(
-        user_id=user_name, text=query, limit=limit, search_scope="nodes"
+        user_id=user_name, query=query, limit=limit
     )
     return [node.summary for node in nodes]
 
 asyncio.run(zep.memory.add(
-        session_id=state["session_id"],
+        session_id="user123",
         messages=rules_as_messages,
     ))
 
