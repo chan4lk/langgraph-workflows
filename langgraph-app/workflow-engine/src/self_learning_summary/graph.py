@@ -116,11 +116,6 @@ async def search_nodes(user_name: str, query: str, limit: int = 5) -> list[str]:
     )
     return [node.summary for node in nodes.edges]
 
-# asyncio.run(zep.memory.add(
-#         session_id="user123",
-#         messages=rules_as_messages,
-#     ))
-
 zep_user_id = "zep_9d5d9e29f1422101f16b0d88747a50fea605009046867164a34b4189e6ec8bed"
 
 # Node: Full rules
@@ -183,6 +178,12 @@ async def zep_node(state: State):
     question = state.messages[-1].content
     context = state.messages[-2].content
 
+    user_id = await zep.memory.add(
+        session_id="user123",
+        messages=rules_as_messages,
+    )
+
+    print("User ID:", user_id)
     
     # Retrieve relevant memories
     memories = await search_facts(zep_user_id, question, 10)
