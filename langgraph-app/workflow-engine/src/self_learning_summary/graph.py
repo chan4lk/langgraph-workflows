@@ -11,6 +11,10 @@ from langmem import create_memory_store_manager
 from pydantic import BaseModel
 from langchain_core.runnables import RunnableConfig
 
+from zep_cloud.client import AsyncZep
+from zep_cloud import Message
+zep = AsyncZep(api_key=os.environ.get('ZEP_API_KEY'))
+
 rules = [
     "Every order is assigned a unique order number.",
     "Customers can check their order status by providing the order number.",
@@ -52,9 +56,9 @@ manager = create_memory_store_manager(
     store=store,
 )
 
-rules_text = "\n".join(rules)
+rules_as_messages = [{"role": "user", "content": rule} for rule in rules]
 
-memories = manager.invoke({"messages": [{"role": "user", "content": rules_text}]}, config=config)
+memories = manager.invoke({"messages": rules_as_messages}, config=config)
 
 # Agent state
 @dataclass
@@ -73,6 +77,46 @@ langmem_agent = create_react_agent(
 )
 # LLM for rules and summary nodes
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+
+
+async def search_facts(user_name: str, query: str, limit: int = 5) -> list[str]:
+    """Search for facts in all conversations had with a user.
+    
+    Args:
+        user_name (str): The user's name.
+        query (str): The search query.
+        limit (int): The number of results to return. Defaults to 5.
+
+    Returns:
+        list: A list of facts that match the search query.
+    """
+    edges = await zep.graph.search(
+        user_id=user_name, text=query, limit=limit, search_scope="edges"
+    )
+    return [edge.fact for edge in edges]
+
+
+async def search_nodes(user_name: str, query: str, limit: int = 5) -> list[str]:
+    """Search for nodes in all conversations had with a user.
+    
+    Args:
+        user_name (str): The user's name.
+        query (str): The search query.
+        limit (int): The number of results to return. Defaults to 5.
+
+    Returns:
+        list: A list of node summaries for nodes that match the search query.
+    """
+    nodes = await zep.graph.search(
+        user_id=user_name, text=query, limit=limit, search_scope="nodes"
+    )
+    return [node.summary for node in nodes]
+
+asyncio.run(zep.memory.add(
+        session_id=state["session_id"],
+        messages=rules_as_messages,
+    ))
+
 
 # Node: Full rules
 def rules_node(state: State):
@@ -128,15 +172,47 @@ Question: {question}"""
     
     return {"langmem_response": response}
 
+# Node: Zep Agent
+def zep_node(state: State):
+    # Get the latest message and context
+    question = state.messages[-1].content
+    context = state.messages[-2].content
+
+    
+    # Retrieve relevant memories
+    memories = asyncio.run(search_facts("user123", question, 10))
+    memory_context = "\n".join(memories)
+    
+    # Prepare the full context with memories
+    full_context = f"""Previous conversation context:
+{context}
+
+Relevant rules and knowledge:
+{memory_context}
+
+Question: {question}"""
+    
+    # Invoke the agent with the full context and conversation history
+    response = langmem_agent.invoke({
+        "messages": [
+            {"role": "user", "content": full_context}
+        ]
+    })
+    
+    return {"langmem_response": response}
+
+
 # Build the workflow
 workflow = StateGraph(State)
 workflow.add_node("rules", rules_node)
 workflow.add_node("summary", summary_node)
 workflow.add_node("langmem", langmem_node)
+workflow.add_node("zep", zep_node)  
 
 workflow.add_edge(START, "rules")
 workflow.add_edge("rules", "summary")
 workflow.add_edge("summary", "langmem")
-workflow.add_edge("langmem", END)
+workflow.add_edge("langmem", "zep")
+workflow.add_edge("zep", END)
 
 graph = workflow.compile()
