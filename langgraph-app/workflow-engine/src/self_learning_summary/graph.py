@@ -93,7 +93,7 @@ llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
 async def _invoke_llm(state: State, knowledge_base_content: str) -> AnyMessage:
     question = state.messages[-1].content
-    context = state.messages[-2].content
+    context = state.messages[-2].content if len(state.messages) >= 2 else ""
     prompt = _format_prompt(
         context=context,
         knowledge_base_content=knowledge_base_content,
