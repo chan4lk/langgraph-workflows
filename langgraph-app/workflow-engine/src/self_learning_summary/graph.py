@@ -61,7 +61,7 @@ manager = create_memory_store_manager(
 
 rules_as_messages = [{"role": "user", "content": rule} for rule in rules]
 
-memories = manager.invoke({"messages": rules_as_messages}, config=config)
+manager.invoke({"messages": rules_as_messages}, config=config)
 
 # Agent state
 @dataclass
@@ -122,29 +122,29 @@ asyncio.run(zep.memory.add(
 
 
 # Node: Full rules
-def rules_node(state: State):
+async def rules_node(state: State):
     question = state.messages[-1].content
     context= state.messages[-2].content
     prompt = (
         "Rules:\n" + "\n".join(rules) +
         f"\n\n{context}\n\nQuestion: {question}"
     )
-    response = llm.invoke([HumanMessage(content=prompt)])
+    response = await llm.ainvoke([HumanMessage(content=prompt)])
     return { "rules_response": response }
 
 # Node: Summary
-def summary_node(state: State):
+async def summary_node(state: State):
     question = state.messages[-1].content
     context= state.messages[-2].content
     prompt = (
         "Summary:\n" + summary +
         f"\n\n{context}\n\nQuestion: {question}"
     )
-    response = llm.invoke([HumanMessage(content=prompt)])
+    response = await llm.ainvoke([HumanMessage(content=prompt)])
     return { "summary_response": response }
 
 # Node: LangMem agent
-def langmem_node(state: State):
+async def langmem_node(state: State):
     # Get the latest message and context
     question = state.messages[-1].content
     context = state.messages[-2].content
@@ -167,7 +167,7 @@ Relevant rules and knowledge:
 Question: {question}"""
     
     # Invoke the agent with the full context and conversation history
-    response = langmem_agent.invoke({
+    response = await langmem_agent.ainvoke({
         "messages": [
             {"role": "user", "content": full_context}
         ]
@@ -176,14 +176,14 @@ Question: {question}"""
     return {"langmem_response": response}
 
 # Node: Zep Agent
-def zep_node(state: State):
+async def zep_node(state: State):
     # Get the latest message and context
     question = state.messages[-1].content
     context = state.messages[-2].content
 
     
     # Retrieve relevant memories
-    memories = asyncio.run(search_facts("user123", question, 10))
+    memories = await search_facts("user123", question, 10)
     memory_context = "\n".join(memories)
     
     # Prepare the full context with memories
@@ -196,7 +196,7 @@ Relevant rules and knowledge:
 Question: {question}"""
     
     # Invoke the agent with the full context and conversation history
-    response = langmem_agent.invoke({
+    response = await langmem_agent.ainvoke({
         "messages": [
             {"role": "user", "content": full_context}
         ]
@@ -210,12 +210,11 @@ workflow = StateGraph(State)
 workflow.add_node("rules", rules_node)
 workflow.add_node("summary", summary_node)
 workflow.add_node("langmem", langmem_node)
-workflow.add_node("zep", zep_node)  
+# workflow.add_node("zep", zep_node)  
 
 workflow.add_edge(START, "rules")
 workflow.add_edge("rules", "summary")
 workflow.add_edge("summary", "langmem")
-workflow.add_edge("langmem", "zep")
-workflow.add_edge("zep", END)
+workflow.add_edge("langmem", END)
 
 graph = workflow.compile()
