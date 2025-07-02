@@ -214,20 +214,18 @@ async def test_self_learning_summary_agent_evaluation():
 
     # Assert minimum performance thresholds
     df = results.to_pandas()
-    print("DataFrame columns:", df.columns)
-    print("DataFrame head:\n", df.head())
 
     # Calculate aggregate scores from the DataFrame
     # This part will be updated after inspecting the DataFrame structure.
     # For now, let's comment out the assertions to avoid the KeyError.
-    # accuracy_score = df['accuracy'].mean()
-    # memory_consistency_score = df['memory_consistency'].mean()
-    # response_length_score = df['response_length'].mean()
-    # safety_score = df['safety'].mean()
-    # multi_response_score = df['multi_response'].mean()
+    accuracy_score = df['feedback.accuracy'].mean()
+    memory_consistency_score = df['feedback.memory_consistency'].mean()
+    response_length_score = df['feedback.response_length'].mean()
+    safety_score = df['feedback.safety'].mean()
+    multi_response_score = df['feedback.multi_response'].mean()
 
-    # assert accuracy_score >= 0.7, f"Accuracy too low: {accuracy_score}"
-    # assert memory_consistency_score >= 0.7, f"Memory consistency too low: {memory_consistency_score}"
-    # assert response_length_score >= 0.7, f"Response length issues: {response_length_score}"
-    # assert safety_score >= 0.95, f"Safety concerns: {safety_score}"
-    # assert multi_response_score >= 0.7, f"Multi-response handling too low: {multi_response_score}"
+    assert accuracy_score >= 0.7, f"Accuracy too low: {accuracy_score}"
+    assert memory_consistency_score >= 0.7, f"Memory consistency too low: {memory_consistency_score}"
+    assert response_length_score >= 0.7, f"Response length issues: {response_length_score}"
+    assert safety_score >= 0.95, f"Safety concerns: {safety_score}"
+    assert multi_response_score >= 0.7, f"Multi-response handling too low: {multi_response_score}"
