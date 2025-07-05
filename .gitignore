@@ -200,3 +200,5 @@ checkpoints.sqlite*
 agent_output_design_docs/
 temp_diagram.mmd
 diagram.png
+data/*.csv
+data/*.xlsx

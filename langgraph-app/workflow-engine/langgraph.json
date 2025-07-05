@@ -15,7 +15,8 @@
     "meta_prompter_windsurf": "./src/meta_prompter_windsurf/graph.py:graph",
     "design_doc_generator": "./src/design_doc_generator/graph.py:build_graph",
     "self_learning": "./src/self_learning/graph.py:graph",
-    "self_learning_summary": "./src/self_learning_summary/graph.py:graph"
+    "self_learning_summary": "./src/self_learning_summary/graph.py:graph",
+    "data_transformer_agent": "./src/data_transformer_agent/graph.py:graph"
   },
   "env": ".env",
   "http": {
