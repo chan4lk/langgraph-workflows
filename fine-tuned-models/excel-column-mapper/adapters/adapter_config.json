@@ -1,6 +1,6 @@
 {
     "adapter_path": "adapters",
-    "batch_size": 4,
+    "batch_size": 1,
     "config": null,
     "data": "./data",
     "fine_tune_type": "lora",
@@ -15,8 +15,8 @@
     "lr_schedule": null,
     "mask_prompt": false,
     "max_seq_length": 2048,
-    "model": "microsoft/Phi-3-mini-4k-instruct",
-    "num_layers": 16,
+    "model": "Qwen/Qwen3-0.6B-MLX-4bit",
+    "num_layers": 2,
     "optimizer": "adam",
     "optimizer_config": {
         "adam": {},

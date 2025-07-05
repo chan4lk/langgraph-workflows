@@ -145,24 +145,53 @@ class SyntheticColumnMappingDataGenerator:
         
     def apply_naming_convention(self, text: str, convention: str) -> str:
         """Apply different naming conventions to column names"""
+        if not text.strip():
+            return text
+            
+        # First normalize to words
+        words = []
+        current_word = []
+        
+        # Split by common delimiters and handle case changes
+        for char in text.replace('_', ' ').replace('-', ' ').replace('.', ' '):
+            if char.isupper() and current_word and not current_word[-1].isupper():
+                words.append(''.join(current_word))
+                current_word = [char]
+            elif char == ' ' and current_word:
+                words.append(''.join(current_word))
+                current_word = []
+            else:
+                current_word.append(char)
+        
+        if current_word:
+            words.append(''.join(current_word))
+        
+        # Filter out empty strings and normalize case
+        words = [w.strip().lower() for w in words if w.strip()]
+        
+        if not words:
+            return text
+            
+        # Apply convention
         if convention == 'snake_case':
-            return text.lower().replace(' ', '_').replace('-', '_')
+            return '_'.join(words)
         elif convention == 'camelCase':
-            words = text.split()
-            return words[0].lower() + ''.join(word.capitalize() for word in words[1:])
+            return words[0] + ''.join(w.capitalize() for w in words[1:])
         elif convention == 'PascalCase':
-            return ''.join(word.capitalize() for word in text.split())
+            return ''.join(w.capitalize() for w in words)
         elif convention == 'kebab-case':
-            return text.lower().replace(' ', '-').replace('_', '-')
+            return '-'.join(words)
         elif convention == 'UPPER_CASE':
-            return text.upper().replace(' ', '_').replace('-', '_')
+            return '_'.join(w.upper() for w in words)
         elif convention == 'Title Case':
-            return text.title()
+            return ' '.join(w.capitalize() for w in words)
         elif convention == 'lowercase':
-            return text.lower()
+            return ' '.join(words).lower()
         elif convention == 'Sentence case':
-            return text.capitalize()
-        return text
+            return ' '.join(words).capitalize()
+        else:
+            # Default to original text if convention not recognized
+            return text
     
     def generate_column_variations(self, base_columns: List[str], num_variations: int = 5) -> List[Dict]:
         """Generate different variations of column names"""
@@ -265,110 +294,202 @@ Provide a JSON mapping where keys are input column names and values are the corr
         
         return training_data
     
-    def generate_complex_scenarios(self, num_examples: int = 200) -> List[Dict]:
+    def _get_schema_section_description(self, section_name: str) -> str:
+        """Get a human-readable description of a schema section"""
+        descriptions = {
+            'facility_basic': 'Basic facility information (names, IDs, numbers)',
+            'location': 'Location and contact information',
+            'contact': 'Primary contact details',
+            'request_info': 'Request metadata',
+            'hospital_affiliation': 'Hospital affiliation details',
+            'office_hours': 'Operating hours (e.g., Monday_From, Monday_To)',
+            'directory_info': 'Directory listing information',
+            'remittance': 'Billing and payment details',
+            'behavioral_health': 'Behavioral health service levels (Level_of_Care_1 to Level_of_Care_25)',
+            'termination': 'Termination information'
+        }
+        return descriptions.get(section_name, section_name)
+
+    def _get_abbreviated_schema(self, columns: List[str]) -> Dict[str, List[str]]:
+        """Get an abbreviated schema containing only the relevant sections"""
+        abbreviated = {}
+        
+        # Determine which sections are relevant
+        relevant_sections = set()
+        for col in columns:
+            for section, fields in self.target_schema.items():
+                if any(field.lower() in col.lower() for field in fields):
+                    relevant_sections.add(section)
+        
+        # Include the most common sections if no matches found
+        if not relevant_sections:
+            relevant_sections = {'facility_basic', 'location', 'contact'}
+        
+        # Build the abbreviated schema
+        for section in relevant_sections:
+            if section in self.target_schema:
+                abbreviated[section] = self.target_schema[section]
+        
+        return abbreviated
+
+    def _generate_column_variation(self, col: str, transformations: Dict) -> str:
+        """Generate a single column variation with transformations"""
+        transformed_col = col
+        
+        # Apply transformations with decreasing probability
+        if col in transformations['abbreviations'] and random.random() < 0.3:
+            transformed_col = random.choice(transformations['abbreviations'][col])
+        
+        if col in transformations['medical_specific'] and random.random() < 0.4:
+            transformed_col = random.choice(transformations['medical_specific'][col])
+        
+        if random.random() < 0.2:
+            prefix = random.choice(transformations['prefixes_suffixes']['prefixes'])
+            transformed_col = prefix + transformed_col.replace(' ', '_')
+        elif random.random() < 0.2:
+            suffix = random.choice(transformations['prefixes_suffixes']['suffixes'])
+            transformed_col = transformed_col.replace(' ', '_') + suffix
+        
+        return transformed_col
+
+    def generate_complex_scenarios(self, num_examples: int = 200):
         """Generate complex scenarios with partial matches, abbreviations, etc."""
         complex_data = []
         
-        # Define complex transformations
+        # Define transformations
         transformations = {
             'abbreviations': {
-                'Street Address': ['St Addr', 'Str Add', 'Address St'],
-                'Phone Number': ['Ph', 'Tel', 'Phone #'],
-                'Email Address': ['Email Addr', 'E-mail', 'Email Add'],
-                'Zip Code': ['Zip', 'Postal Code', 'ZIP'],
-                'Tax Identification Number': ['Tax ID', 'TIN', 'Fed Tax ID']
-            },
-            'prefixes_suffixes': {
-                'prefixes': ['Primary_', 'Main_', 'Default_', 'Current_', 'Active_'],
-                'suffixes': ['_Primary', '_Main', '_Current', '_1', '_Info']
+                'Facility Name': ['Fac Name', 'Facility Nm', 'FAC_NAME', 'fac_nm'],
+                'Street Address': ['St Addr', 'Street Addr', 'STRT_ADDR', 'st_addr'],
+                'Primary Contact Name': ['PC Name', 'Prim Contact', 'PRI_CONTACT', 'pc_name'],
+                'Primary Contact Email': ['PC Email', 'Primary Email', 'PRI_EMAIL', 'pc_email'],
+                'Phone': ['Ph', 'Tel', 'PHONE', 'ph'],
+                'NPI': ['NPI_Num', 'NPI_Number', 'NPI_NUM', 'npi'],
+                'TIN': ['TIN_Num', 'TIN_Number', 'TIN_NUM', 'tin'],
+                'Effective Date': ['Eff Date', 'Effective Dt', 'EFF_DT', 'eff_dt']
             },
             'medical_specific': {
-                'NPI': ['National_Provider_Identifier', 'Provider_NPI', 'NPI_Number'],
-                'Taxonomy': ['Provider_Taxonomy', 'Specialty_Code', 'Tax_Code'],
-                'Medicare Number': ['Medicare_ID', 'Medicare_Num', 'CMS_Number'],
-                'Medicaid Number': ['Medicaid_ID', 'Medicaid_Num', 'State_ID']
+                'NPI': ['National Provider ID', 'NPI Number', 'NPI #'],
+                'TIN': ['Tax ID', 'Tax Identification Number', 'EIN'],
+                'Facility Type': ['Facility Category', 'Provider Type', 'Entity Type'],
+                'Medicare Number': ['Medicare ID', 'Medicare #', 'MCR_NUM'],
+                'Medicaid Number': ['Medicaid ID', 'Medicaid #', 'MDCD_NUM']
+            },
+            'prefixes_suffixes': {
+                'prefixes': ['hf_', 'hcf_', 'prov_', 'fac_', 'mstr_', 'data_', 'src_'],
+                'suffixes': ['_cd', '_id', '_num', '_nm', '_txt', '_dt', '_flag']
             }
         }
         
-        for i in range(num_examples):
-            # Start with a base set of columns
-            base_columns = random.sample(list(self.target_schema['facility_basic']) + 
-                                       list(self.target_schema['location']) +
-                                       list(self.target_schema['contact']), 
-                                       random.randint(8, 15))
+        # Common unrelated columns to add noise
+        unrelated_columns = [
+            'Internal_Notes', 'Legacy_System_ID', 'Migration_Status', 
+            'Data_Quality_Score', 'Last_Updated_By', 'Approval_Status',
+            'Record_Source', 'ETL_Timestamp', 'Source_System', 'Last_Modified_Date',
+            'Data_Owner', 'Validation_Status', 'Processing_Date', 'Batch_ID'
+        ]
+
+        for _ in range(num_examples):
+            # Select a random set of base columns from different schema sections
+            section_weights = {
+                'facility_basic': 0.7,  # 70% chance to include columns from this section
+                'location': 0.8,        # 80% chance
+                'contact': 0.6,         # 60% chance
+                'request_info': 0.3,    # 30% chance
+                'directory_info': 0.4   # 40% chance
+            }
             
+            base_columns = []
+            for section, weight in section_weights.items():
+                if random.random() < weight:
+                    # Take 1-3 columns from this section
+                    cols = random.sample(
+                        self.target_schema[section],
+                        min(random.randint(1, 3), len(self.target_schema[section]))
+                    )
+                    base_columns.extend(cols)
+            
+            # Ensure we have between 8-15 columns total
+            if len(base_columns) > 15:
+                base_columns = random.sample(base_columns, 15)
+            elif len(base_columns) < 8:
+                # If we don't have enough columns, add some common ones
+                common_columns = [
+                    'Facility Name', 'NPI', 'Street Address', 'City', 'State',
+                    'Zip Code', 'Phone', 'Primary Contact Name', 'Primary Contact Email'
+                ]
+                needed = 8 - len(base_columns)
+                additional = [c for c in common_columns if c not in base_columns]
+                base_columns.extend(random.sample(additional, min(needed, len(additional))))
+            
+            # Generate variant columns with transformations
             variant_columns = {}
-            
             for col in base_columns:
-                # Apply various transformations
-                transformed_col = col
+                # Generate 1-3 variations of each column
+                num_variations = random.choices([1, 2, 3], weights=[0.7, 0.2, 0.1])[0]
+                variations = set()
                 
-                # Abbreviations
-                if col in transformations['abbreviations']:
-                    if random.random() < 0.3:
-                        transformed_col = random.choice(transformations['abbreviations'][col])
-                
-                # Medical specific
-                if col in transformations['medical_specific']:
-                    if random.random() < 0.4:
-                        transformed_col = random.choice(transformations['medical_specific'][col])
-                
-                # Add prefixes/suffixes
-                if random.random() < 0.2:
-                    prefix = random.choice(transformations['prefixes_suffixes']['prefixes'])
-                    transformed_col = prefix + transformed_col.replace(' ', '_')
-                elif random.random() < 0.2:
-                    suffix = random.choice(transformations['prefixes_suffixes']['suffixes'])
-                    transformed_col = transformed_col.replace(' ', '_') + suffix
-                
-                # Apply naming convention
+                # Always include the original column (with naming convention applied)
                 convention = random.choice(self.naming_conventions)
-                final_col = self.apply_naming_convention(transformed_col, convention)
+                original_variation = self.apply_naming_convention(col, convention)
+                variations.add(original_variation)
                 
-                variant_columns[final_col] = col
+                # Generate additional variations
+                for _ in range(num_variations - 1):
+                    variation = self._generate_column_variation(col, transformations)
+                    convention = random.choice(self.naming_conventions)
+                    final_variation = self.apply_naming_convention(variation, convention)
+                    variations.add(final_variation)
+                
+                # Add all variations to our mapping
+                for variation in variations:
+                    variant_columns[variation] = col
             
-            # Add some completely unrelated columns
-            unrelated = ['Internal_Notes', 'Legacy_System_ID', 'Migration_Status', 
-                        'Data_Quality_Score', 'Last_Updated_By', 'Approval_Status']
-            for _ in range(random.randint(1, 3)):
-                unrelated_col = random.choice(unrelated)
+            # Add some unrelated columns (noise)
+            num_unrelated = random.choices([0, 1, 2, 3], weights=[0.2, 0.5, 0.2, 0.1])[0]
+            for _ in range(num_unrelated):
+                unrelated_col = random.choice(unrelated_columns)
                 if unrelated_col not in variant_columns:
                     variant_columns[unrelated_col] = None
             
+            # Prepare input and output
             input_columns = list(variant_columns.keys())
             column_mapping = {k: v for k, v in variant_columns.items() if v is not None}
             
-            # Create user message for complex scenario
-            user_content = f"""Analyze these column names from a healthcare provider data file and map them to the standard schema. Handle medical abbreviations, naming variations, and prefixes/suffixes appropriately:
-
-Input columns: {input_columns}
-
-Standard schema:
-{json.dumps(self.target_schema, indent=2)}
-
-Return a JSON mapping of input columns to standard schema columns. Only include clear matches and handle medical terminology correctly."""
-
-            assistant_content = json.dumps(column_mapping, indent=2)
+            # Get abbreviated schema for context
+            abbreviated_schema = self._get_abbreviated_schema(column_mapping.values())
             
-            # Create messages format
+            # Create user message with optimized content
+            user_content = (
+                "Map these healthcare data columns to the standard schema. "
+                "Handle variations, abbreviations, and medical terminology.\n\n"
+                f"Input columns: {input_columns}\n\n"
+                "Schema sections (with example fields):\n"
+            )
+            
+            # Add schema section descriptions
+            for section, fields in abbreviated_schema.items():
+                user_content += f"- {self._get_schema_section_description(section)}: {', '.join(fields[:3])}"
+                if len(fields) > 3:
+                    user_content += f"... ({len(fields)-3} more)"
+                user_content += "\n"
+            
+            user_content += "\nReturn a JSON object mapping input columns to standard schema columns."
+            
+            # Create assistant response with compact JSON
+            assistant_content = json.dumps(column_mapping, separators=(',', ':'))
+            
+            # Create messages with optimized structure
             messages = [
-                {
-                    "role": "system",
-                    "content": self.system_message
-                },
-                {
-                    "role": "user",
-                    "content": user_content
-                },
-                {
-                    "role": "assistant", 
-                    "content": assistant_content
-                }
+                {"role": "system", "content": self.system_message},
+                {"role": "user", "content": user_content},
+                {"role": "assistant", "content": assistant_content}
             ]
             
-            complex_data.append({
-                "messages": messages
-            })
+            # Add to dataset if within token limits
+            total_tokens = sum(len(msg["content"]) for msg in messages) // 4  # Rough estimate
+            if total_tokens <= 1000:  # Leave some headroom
+                complex_data.append({"messages": messages})
         
         return complex_data
     

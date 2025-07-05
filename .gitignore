@@ -202,3 +202,4 @@ temp_diagram.mmd
 diagram.png
 data/*.csv
 data/*.xlsx
+fine-tuned-models/excel-column-mapper/adapters/*.safetensors

@@ -15,6 +15,7 @@ uv add mlx_lm
 
 ```bash
 uv run mlx_lm.lora --model microsoft/Phi-3-mini-4k-instruct --train --data ./data --iters 1000
+uv run mlx_lm.lora --model Qwen/Qwen3-0.6B-MLX-4bit --train --data ./data --iters 1000 --batch-size 1 --max-seq-length 1024 --num-layers 2 --fine-tune-type lora
 ```
 
 ## MLX Evaluate
