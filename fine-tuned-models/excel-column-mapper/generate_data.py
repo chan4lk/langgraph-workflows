@@ -7,10 +7,10 @@ from datetime import datetime, timedelta
 import uuid
 import os
 
-OUTPUT_DIR = "data/jsonl"
-TRAIN_FILENAME = "train_messages.jsonl"
-VALID_FILENAME = "valid_messages.jsonl"
-TEST_FILENAME = "test_messages.jsonl"
+OUTPUT_DIR = "data"
+TRAIN_FILENAME = "train.jsonl"
+VALID_FILENAME = "valid.jsonl"
+TEST_FILENAME = "test.jsonl"
 
 # Define split ratios (adjust if needed)
 TRAIN_RATIO = 0.70
