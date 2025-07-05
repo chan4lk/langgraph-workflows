@@ -372,7 +372,7 @@ Return a JSON mapping of input columns to standard schema columns. Only include 
         
         return complex_data
     
-    def save_training_data(self, filename: str = 'column_mapping_training_data.jsonl'):
+    def save_training_data(self, filename: str = 'data/data.jsonl'):
         """Generate and save all training data in messages format"""
         print("Generating basic training examples...")
         basic_examples = self.generate_training_examples(800)
@@ -413,11 +413,3 @@ Return a JSON mapping of input columns to standard schema columns. Only include 
                 json.dump(record, f, ensure_ascii=False)
                 f.write('\n')
 
-# Generate the training data
-generator = SyntheticColumnMappingDataGenerator()
-training_data = generator.save_training_data()
-
-print("\nTraining data generation complete!")
-print(f"Total examples: {len(training_data)}")
-print("\nExample training instance:")
-print(json.dumps(training_data[0], indent=2))
