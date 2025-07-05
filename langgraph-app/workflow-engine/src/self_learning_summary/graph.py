@@ -75,7 +75,7 @@ manager = create_memory_store_manager(
 
 rules_as_messages = [{"role": "user", "content": rule} for rule in rules]
 
-manager.invoke({"messages": rules_as_messages}, config=config)
+
 
 # Agent state
 @dataclass
@@ -111,6 +111,8 @@ async def summary_node(state: State):
 
 # Node: LangMem agent
 async def langmem_node(state: State):
+    manager.invoke({"messages": rules_as_messages}, config=config)
+    
     memories = manager.search(
         query=state.messages[-1].content,
         config=config,
