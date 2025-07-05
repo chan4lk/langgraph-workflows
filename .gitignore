@@ -203,3 +203,4 @@ diagram.png
 data/*.csv
 data/*.xlsx
 fine-tuned-models/excel-column-mapper/adapters/*.safetensors
+fine-tuned-models/excel-column-mapper/fused_model/
